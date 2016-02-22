@@ -1,6 +1,6 @@
 # CDT316 Distributed Systems Project
 This is a solution to the group assignment for Mälardalen University's Distributed Systems course.
-Developed by Mitchell Hentges and Stefan Danielson
+Developed by Mitchell Hentges and Stefan Danielsson
 
 ## Setting up
 
