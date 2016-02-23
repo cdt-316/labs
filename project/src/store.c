@@ -9,26 +9,25 @@ void store_init()
 
 }
 
-void lock(int id, int nameCount, char* nameList[], void callback(int))
+int lock(int id, int nameCount, char* nameList[])
 {
-    callback(0);
+    return 0;
 }
 
-void unlock(int id, int nameCount, char* nameList[], void callback(int))
+int unlock(int id, int nameCount, char* nameList[])
 {
-    callback(0);
+    return 0;
 }
 
-void store_write(int id, int resourceCount, struct resource entryList[], void callback(int))
+int store_write(int id, int resourceCount, struct resource entryList[])
 {
-    callback(0);
+    return 0;
 }
 
-void store_read(int id, int nameCount, char* nameList[], void callback(int, int, struct resource[]))
+int store_read(int id, int nameCount, char* nameList[], int* entryCount, struct resource resources[])
 {
-    struct resource resources[3] = {
-            {"Obama", "true"},
-            {"Biden", "false"},
-    };
-    callback(0, 2, resources);
+    *entryCount = 2;
+    resources[0] = {"Obama", "true"};
+    resources[1] = {"Biden", "false"};
+    return 0;
 }
