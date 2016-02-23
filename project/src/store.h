@@ -48,11 +48,12 @@ int store_write(int id, int resourceCount, struct resource entryList[]);
 /**
  * Will read the resources listed in "nameList". If a lock does not exist for all
  * requested resources, or the lock is not for the requesting id, then the resources will not be read.
+ * Puts the returned values in entryList, and expects it to already be allocated.
  *
  * Returns:
  * 0: success
  * 1: generic error
  */
-int store_read(int id, int nameCount, char* nameList[], int* entryCount, struct resource entryList[]);
+int store_read(int id, int nameCount, char* nameList[], struct resource entryList[]);
 
 #endif // STORE_H_INCLUDED

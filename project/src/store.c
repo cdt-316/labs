@@ -24,10 +24,10 @@ int store_write(int id, int resourceCount, struct resource entryList[])
     return 0;
 }
 
-int store_read(int id, int nameCount, char* nameList[], int* entryCount, struct resource resources[])
+int store_read(int id, int nameCount, char* nameList[], struct resource entryList[])
 {
-    *entryCount = 2;
-    resources[0] = {"Obama", "true"};
-    resources[1] = {"Biden", "false"};
+    struct resource r = {"Obama", "true"};
+    entryList[0] = r;
+    //entryList[1] = {"Biden", "false"};
     return 0;
 }
