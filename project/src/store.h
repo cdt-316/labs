@@ -10,10 +10,10 @@ struct resource
     char value[MAX_STRING_LEN];
 }
 
-/**Lock resources in database, addressed by the names in the nameList. Returns 1 on success, or 0 on failure.*/
+/**Lock resources in the local database, specified by the names in the nameList. Returns 1 on success, or 0 on failure.*/
 int lock(int id, char** nameList);
 
-/**Unlock resources in database, addressed by the names in the nameList. Returns 1 on success, or 0 on failure.*/
+/**Unlock resources in the local database, specified by the names in the nameList. Returns 1 on success, or 0 on failure.*/
 int unlock(int id, char** nameList);
 
 
