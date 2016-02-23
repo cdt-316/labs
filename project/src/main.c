@@ -1,6 +1,6 @@
-#include "lib-test.h"
+#include <stdio.h>
 
 int main()
 {
-	printHello();
+	printf("Hello world\n");
 } 

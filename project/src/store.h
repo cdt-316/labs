@@ -1,25 +1,56 @@
 #ifndef STORE_H_INCLUDED
 #define STORE_H_INCLUDED
 
-#define MAX_STRING_LEN  50
+#define MAX_NAME_LENGTH 50
+#define MAX_VALUE_LENGTH 50
 
-/**A database entry*/
+/**
+ * A key-value resource
+ */
 struct resource
 {
-    char name[MAX_STRING_LEN];
-    char value[MAX_STRING_LEN];
-}
+    char name[MAX_NAME_LENGTH];
+    char value[MAX_VALUE_LENGTH];
+};
 
-/**Lock resources in the local database, specified by the names in the nameList. Returns 1 on success, or 0 on failure.*/
+/**
+ * Lock the requested resources to the node with the specified "id".
+ * Only the node with the specified "id" will be able to read/write the data until unlocked again.
+ * Other nodes will be unable to access the data.
+ *
+ * Returns:
+ * 0: success
+ * 1: generic error
+ */
 int lock(int id, char** nameList);
 
-/**Unlock resources in the local database, specified by the names in the nameList. Returns 1 on success, or 0 on failure.*/
+/**
+ * Unlock the requested resources so that some other node can use them.
+ * Will fail if the specified "id" was not the same one used to lock the resources originally
+ *
+ * Returns:
+ * 0: success
+ * 1: generic error
+ */
 int unlock(int id, char** nameList);
 
+/**
+ * Writes the provided list of resources, if a lock exists for all the resources for the specified id.
+ *
+ * Returns:
+ * 0: success
+ * 1: generic error
+ */
+int store_write(int id, struct resource entryList[]);
 
-int s_write(int id, struct resource* entryList);
-
-
-struct resource* s_read(int id, char** nameList);
+/**
+ * Will read the resources listed in "nameList" and put them in "entryList". If a lock does not exist for all
+ * requested resources, or the lock is not for the requesting id, then the resources will not be read.
+ *
+ * Returns:
+ * 0: success
+ * 1: generic error
+ */
+int store_read(int id, char** nameList, struct resource entryList[]);
 
 #endif // STORE_H_INCLUDED
