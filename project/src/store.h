@@ -18,39 +18,45 @@ struct resource
  * Only the node with the specified "id" will be able to read/write the data until unlocked again.
  * Other nodes will be unable to access the data.
  *
- * Returns:
+ * Data provided to callback:
+ *  "status":
  * 0: success
  * 1: generic error
  */
-int lock(int id, char** nameList);
+void lock(int id, char** nameList, void *callback(int status));
 
 /**
  * Unlock the requested resources so that some other node can use them.
  * Will fail if the specified "id" was not the same one used to lock the resources originally
  *
- * Returns:
+ * Data provided to callback:
+ *  "status":
  * 0: success
  * 1: generic error
  */
-int unlock(int id, char** nameList);
+void unlock(int id, char** nameList, void *callback(int status));
 
 /**
  * Writes the provided list of resources, if a lock exists for all the resources for the specified id.
  *
- * Returns:
+ * Data provided to callback:
+ *  "status":
  * 0: success
  * 1: generic error
  */
-int store_write(int id, struct resource entryList[]);
+void store_write(int id, struct resource entryList[], void *callback(int status));
 
 /**
- * Will read the resources listed in "nameList" and put them in "entryList". If a lock does not exist for all
+ * Will read the resources listed in "nameList". If a lock does not exist for all
  * requested resources, or the lock is not for the requesting id, then the resources will not be read.
  *
- * Returns:
+ * Data provided to callback:
+ *  "status":
  * 0: success
  * 1: generic error
+ *  "entryList"
+ * List of each resource requested
  */
-int store_read(int id, char** nameList, struct resource entryList[]);
+void store_read(int id, char** nameList, void *callback(int status, struct resource entryList[]));
 
 #endif // STORE_H_INCLUDED
