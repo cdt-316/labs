@@ -13,19 +13,21 @@ void test()
     struct resource resource2 = {"Resource2", "Other"};
     struct resource resource3 = {"Resource3", "true"};
     struct resource resource4 = {"Resource4", "Trump pls"};
-    struct resource entryList[2];
+    struct resource entryList[4];
     struct resource otherEntryList[2];
-    char* nameList[2];
+    char* nameList[4];
     char* otherNameList[2];
+
+    printf("*** Tests starting\n");
 
     // Shouldn't be able to write without a lock
     entryList[0] = resource1;
     code = store_write(this_id, 1, entryList);
-    if (code) printf("WRITE_WITHOUT_LOCK|Able to write without a lock\n");
+    if (!code) printf("WRITE_WITHOUT_LOCK|Able to write without a lock\n");
 
     // Shouldn't be able to read without a lock
     code = store_read(this_id, 1, nameList, entryList);
-    if (code) printf("READ_WITHOUT_LOCK|Able to read without a lock\n");
+    if (!code) printf("READ_WITHOUT_LOCK|Able to read without a lock\n");
 
     // Should be able to write with a lock
     nameList[0] = resource1.name;
@@ -86,6 +88,23 @@ void test()
     code = unlock(this_id, 1, nameList);
     if (code) printf("OTHER_WRITE_TO_LOCKED|Unlocking failed\n");
 
+    // Should allow a big transaction of writing
+    nameList[0] = resource1.name;
+    nameList[1] = resource2.name;
+    nameList[2] = resource3.name;
+    nameList[3] = resource4.name;
+    entryList[0] = resource1;
+    entryList[1] = resource2;
+    entryList[2] = resource3;
+    entryList[3] = resource4;
+
+    code = lock(this_id, 4, nameList);
+    if (code) printf("BIG_WRITE|Initial locking failed\n");
+    code = store_write(this_id, 4, entryList);
+    if (code) printf("BIG_WRITE|Failed to write data\n");
+    code = unlock(this_id, 4, nameList);
+    if (code) printf("BIG_WRITE|Unlocking failed\n");
+
     // Should allow concurrent multi-resource locking and reading
     nameList[0] = resource1.name;
     nameList[1] = resource2.name;
@@ -98,7 +117,7 @@ void test()
     if (code) printf("MULTI_LOCK|Initial locking failed for other node\n");
     code = store_read(this_id, 2, nameList, entryList);
     if (code) printf("MULTI_LOCK|Failed to read resources\n");
-    code = store_read(this_id, 2, otherNameList, otherEntryList);
+    code = store_read(other_id, 2, otherNameList, otherEntryList);
     if (code) printf("MULTI_LOCK|Failed to read resources for other node\n");
     code = unlock(this_id, 2, nameList);
     if (code) printf("MULTI_LOCK|Unlocking failed\n");
@@ -109,10 +128,10 @@ void test()
     if (strcmp(entryList[0].value, resource1.value)) printf("MULTI_LOCK|entryList[0] invalid value\n");
     if (strcmp(entryList[1].name, resource2.name)) printf("MULTI_LOCK|entryList[1] invalid name\n");
     if (strcmp(entryList[1].value, resource2.value)) printf("MULTI_LOCK|entryList[1] invalid value\n");
-    if (strcmp(entryList[2].name, resource3.name)) printf("MULTI_LOCK|entryList[2] invalid name\n");
-    if (strcmp(entryList[2].value, resource3.value)) printf("MULTI_LOCK|entryList[2] invalid value\n");
-    if (strcmp(entryList[3].name, resource4.name)) printf("MULTI_LOCK|entryList[3] invalid name\n");
-    if (strcmp(entryList[4].value, resource4.value)) printf("MULTI_LOCK|entryList[3] invalid value\n");
+    if (strcmp(otherEntryList[0].name, resource3.name)) printf("MULTI_LOCK|otherEntryList[0] invalid name\n");
+    if (strcmp(otherEntryList[0].value, resource3.value)) printf("MULTI_LOCK|otherEntryList[0] invalid value\n");
+    if (strcmp(otherEntryList[1].name, resource4.name)) printf("MULTI_LOCK|otherEntryList[1] invalid name\n");
+    if (strcmp(otherEntryList[1].value, resource4.value)) printf("MULTI_LOCK|otherEntryList[1] invalid value\n");
 
-
+    printf("*** Tests complete\n");
 }

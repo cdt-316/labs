@@ -22,7 +22,8 @@ void store_init();
  *
  * Returns:
  * 0: success
- * 1: generic error
+ * 1: lock already exists on at least one of the requested resources
+ * 2: out of space to acquire locks
  */
 int lock(int id, int nameCount, char* nameList[]);
 
@@ -41,7 +42,8 @@ int unlock(int id, int nameCount, char* nameList[]);
  *
  * Returns:
  * 0: success
- * 1: generic error
+ * 1: lock didn't exist for id and resources
+ * 2: ran out of space to put resources
  */
 int store_write(int id, int resourceCount, struct resource entryList[]);
 
@@ -49,6 +51,8 @@ int store_write(int id, int resourceCount, struct resource entryList[]);
  * Will read the resources listed in "nameList". If a lock does not exist for all
  * requested resources, or the lock is not for the requesting id, then the resources will not be read.
  * Puts the returned values in entryList, and expects it to already be allocated.
+ *
+ * For resource which don't exist, they will be returned, but the value will be ""
  *
  * Returns:
  * 0: success
