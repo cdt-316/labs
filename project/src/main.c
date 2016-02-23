@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "store.h"
 #include "test.c"
 
