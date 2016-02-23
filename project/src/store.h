@@ -13,50 +13,51 @@ struct resource
     char value[MAX_VALUE_LENGTH];
 };
 
+void store_init();
+
 /**
  * Lock the requested resources to the node with the specified "id".
  * Only the node with the specified "id" will be able to read/write the data until unlocked again.
  * Other nodes will be unable to access the data.
  *
- * Data provided to callback:
- *  "status":
+ * Returns:
  * 0: success
- * 1: generic error
+ * 1: lock already exists on at least one of the requested resources
+ * 2: out of space to acquire locks
  */
-void lock(int id, char** nameList, void *callback(int status));
+int lock(int id, int nameCount, char* nameList[]);
 
 /**
  * Unlock the requested resources so that some other node can use them.
  * Will fail if the specified "id" was not the same one used to lock the resources originally
  *
- * Data provided to callback:
- *  "status":
+ * Returns:
  * 0: success
  * 1: generic error
  */
-void unlock(int id, char** nameList, void *callback(int status));
+int unlock(int id, int nameCount, char* nameList[]);
 
 /**
  * Writes the provided list of resources, if a lock exists for all the resources for the specified id.
  *
- * Data provided to callback:
- *  "status":
+ * Returns:
  * 0: success
- * 1: generic error
+ * 1: lock didn't exist for id and resources
+ * 2: ran out of space to put resources
  */
-void store_write(int id, struct resource entryList[], void *callback(int status));
+int store_write(int id, int resourceCount, struct resource entryList[]);
 
 /**
  * Will read the resources listed in "nameList". If a lock does not exist for all
  * requested resources, or the lock is not for the requesting id, then the resources will not be read.
+ * Puts the returned values in entryList, and expects it to already be allocated.
  *
- * Data provided to callback:
- *  "status":
+ * For resource which don't exist, they will be returned, but the value will be ""
+ *
+ * Returns:
  * 0: success
  * 1: generic error
- *  "entryList"
- * List of each resource requested
  */
-void store_read(int id, char** nameList, void *callback(int status, struct resource entryList[]));
+int store_read(int id, int nameCount, char* nameList[], struct resource entryList[]);
 
 #endif // STORE_H_INCLUDED
