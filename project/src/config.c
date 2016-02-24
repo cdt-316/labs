@@ -8,22 +8,19 @@
 #include <netdb.h>
 #include "config.h"
 
-struct node* _node_with_address(int, char*, char*);
+int _node_with_address(int, char*, char*, struct node*);
 
 int id(char* filename, char* address, int port)
 {
-    struct node* currentNode;
-    while ((currentNode = _node_with_address(0, filename, address)) != NULL) //TODO test this line
+    struct node* currentNode = malloc(sizeof(struct node));
+    int lineFound = 0;
+    while ((lineFound = _node_with_address(lineFound, filename, address, currentNode)) != -1)
     {
-        if (currentNode->port == port)
-        {
-            break;
-        }
-
-        free(currentNode);
+        if (currentNode->port == port) break;
+        lineFound++;
     }
 
-    if (currentNode == NULL) return -1;
+    if (lineFound == -1) return -1;
     int id = currentNode->id;
     free(currentNode);
     return id;
@@ -63,16 +60,27 @@ struct node* this_node(char* filename)
     }
 
     freeifaddrs(ifaddr);
-    return _node_with_address(0, filename, address);
+
+    struct node* nodePtr = malloc(sizeof(struct node));
+    int lineFound = _node_with_address(0, filename, address, nodePtr);
+    if (lineFound == -1)
+    {
+        free(nodePtr);
+        return NULL;
+    }
+    return nodePtr;
 }
 
-struct node* _node_with_address(int lineOffset, char* filename, char* address)
+/**
+ * Returns the line on which the node config was found, otherwise -1
+ */
+int _node_with_address(int lineOffset, char* filename, char* address, struct node*nodePtr)
 {
     FILE* fp = fopen(filename, "r");
     if (fp == NULL)
     {
-        printf("Can't open file at: %s", filename);
-        return NULL;
+        printf("Can't open file at: %s\n", filename);
+        return -1;
     }
 
     int currentLine = 0, currentId, currentPort;
@@ -86,14 +94,13 @@ struct node* _node_with_address(int lineOffset, char* filename, char* address)
         {
             fclose(fp);
 
-            struct node* newNode = (struct node*)malloc(sizeof(struct node));
-            newNode->id = currentId;
-            newNode->port = currentPort;
-            strcpy(newNode->address, currentAddress);
-            return newNode;
+            nodePtr->id = currentId;
+            nodePtr->port = currentPort;
+            strcpy(nodePtr->address, currentAddress);
+            return currentLine;
         }
     }
 
     fclose(fp);
-    return NULL;
+    return -1;
 }

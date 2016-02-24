@@ -65,7 +65,7 @@ int lock(int id, int nameCount, char* nameList[])
         return 2;
     }
 
-    struct lock* newLock = (struct lock*)malloc(sizeof(struct lock));
+    struct lock* newLock = malloc(sizeof(struct lock));
     newLock->id = id;
     newLock->nameCount = nameCount;
 
@@ -136,7 +136,7 @@ int store_write(int id, int resourceCount, struct resource entryList[])
         int index = resourceIndices[i];
         if (index == -1) continue;
 
-        struct resource* newResource = (struct resource*)malloc(sizeof(struct resource));
+        struct resource* newResource = malloc(sizeof(struct resource));
         strncpy(newResource->name, nameList[i], MAX_NAME_LENGTH);
         strncpy(newResource->value, entryList[i].value, MAX_VALUE_LENGTH);
         resources[index] = newResource;
