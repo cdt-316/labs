@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void test()
+void store_test()
 {
     int code, this_id = 0, other_id = 1;
     struct resource resource1 = {"Resource1", "Value"};
