@@ -28,3 +28,23 @@ Developed by Mitchell Hentges and Stefan Danielsson
 1. Open a terminal in the `project/build` folder
 2. `make`
 3. Run the program with `./src/distributed-db`
+
+## Usage
+
+`distributed-db config-path [address port]`
+
+If address and port aren't specified, then the address will be read from the system, and port will be determined via
+the config file.
+
+Specifying the address and port manually is helpful when running multiple instances of `distributed-db` on the same
+machine.
+
+### Config file
+
+In the following format, separated by spaces:
+```
+0 193.11.112.192 9001
+1 192.168.123.333 9002
+2 193.11.112.177 9003
+```
+Where the first column is "id", second column is "address" and third column is "port"
