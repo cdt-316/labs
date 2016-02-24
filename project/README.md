@@ -41,7 +41,7 @@ machine.
 
 ### Config file
 
-In the following format, separated by spaces:
+In the following example's format, separated by spaces:
 ```
 0 193.11.112.192 9001
 1 192.168.123.333 9002
