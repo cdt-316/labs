@@ -57,7 +57,7 @@ int all_nodes(char *filename, struct node nodes[])
     return currentId;
 }
 
-int node_for_id(char *filename, char *address, int port)
+int node_id(char *filename, char *address, int port)
 {
     struct node* currentNode = malloc(sizeof(struct node));
     int lineFound = 0;

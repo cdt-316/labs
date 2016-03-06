@@ -28,7 +28,7 @@ int all_nodes(char *filename, struct node nodes[]);
  * Returns the id of the ip at the address and port specified.
  * If an error occurs, or the node couldn't be found, -1 is returned
  */
-int node_for_id(char *filename, char *address, int port);
+int node_id(char *filename, char *address, int port);
 
 /**
  * Returns the data of the node with the address specified.
