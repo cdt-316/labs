@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    int nodeCount = node_count(argv[1]);
     struct node* thisNode;
     if (argc == 2)
     {
@@ -34,4 +35,5 @@ int main(int argc, char* argv[])
     store_init();
     store_test();
     printf("id: %d, host: %s, port: %d\n", thisNode->id, thisNode->address, thisNode->port);
+    printf("nodeCount: %d\n", nodeCount);
 }
