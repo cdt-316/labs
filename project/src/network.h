@@ -18,6 +18,6 @@ struct connection {
  * Connects to each possible node, and leaves a socket open for other nodes to connect to.
  * Maintains the new connections.
  */
-void network_init();
+void network_init(int nodeCount, struct node nodes[]);
 
 #endif //DISTRIBUTED_DB_NETWORK_H

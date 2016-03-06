@@ -10,7 +10,7 @@
 
 int _node_with_address(int, char*, char*, struct node*);
 
-int node_count(char* filename)
+int node_count(char *filename)
 {
     FILE* fp = fopen(filename, "r");
     if (fp == NULL)
@@ -32,7 +32,32 @@ int node_count(char* filename)
     return lines;
 }
 
-int id(char* filename, char* address, int port)
+int all_nodes(char *filename, struct node nodes[])
+{
+    FILE* fp = fopen(filename, "r");
+    if (fp == NULL)
+    {
+        printf("Can't open file at: %s\n", filename);
+        return -1;
+    }
+
+    int currentId = 0, currentPort;
+    char currentAddress[IP_ADDRESS_SIZE];
+
+    // Variables just there to only count lines that match structure. They aren't used.
+    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
+    {
+        strcpy(nodes[currentId].address, currentAddress);
+        nodes[currentId].port = currentPort;
+        nodes[currentId].id = currentId;
+        currentId++;
+    }
+
+    fclose(fp);
+    return currentId;
+}
+
+int node_for_id(char *filename, char *address, int port)
 {
     struct node* currentNode = malloc(sizeof(struct node));
     int lineFound = 0;
