@@ -48,9 +48,9 @@ struct node* node_for_id(int id)
     return nodes[id];
 }
 
-int get_node_id(char *address, int port)
+int node_id(char *address, int port)
 {
-    for (int i = 0; i < MAX_NODES; i++)
+    for (int i = 0; i < nodeCount; i++)
     {
         struct node* current = nodes[i];
         if (!strcmp(address, current->address) && port == current->port)

@@ -34,7 +34,7 @@ struct node* node_for_id(int id);
  * Returns the id of the node at the address and port specified.
  * If configuration hasn't been init, or the node couldn't be found returns -1
  */
-int get_node_id(char *address, int port);
+int node_id(char *address, int port);
 
 /**
  * Returns the first node with the same ip address as the curent machine

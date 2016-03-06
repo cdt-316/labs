@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
         thisNode = malloc(sizeof(struct node));
         strcpy(thisNode->address, argv[2]);
         thisNode->port = atoi(argv[3]);
-        thisNode->id = get_node_id(thisNode->address, thisNode->port);
+        thisNode->id = node_id(thisNode->address, thisNode->port);
     }
 
     int nodeCount = node_count();

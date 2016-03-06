@@ -7,14 +7,14 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 #include "network.h"
-#include "config.h"
 
-struct connection* connections;
+struct connection connections[MAX_NODES];
 
 void network_init(int nodeCount, struct node* this)
 {
-    connections = malloc(sizeof(struct connection) * nodeCount);
+    char buffer[1024];
     int listenSocket;
     fd_set fds;
 
@@ -76,30 +76,35 @@ void network_init(int nodeCount, struct node* this)
             if (newSocket < 0)
                 perror("Accept failed\n");
 
-            printf("network * New connection from %s:%d\n", inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+            char* ipAddress = inet_ntoa(address.sin_addr);
+            int port = ntohs(address.sin_port);
+
+            int nodeId = node_id(ipAddress, port);
+            printf("network * Node %d connected: (%s:%d)\n", nodeId, ipAddress, port);
+            connections[nodeId].socket = newSocket;
+
+            struct timeval tv;
         }
 
+        for (int i = 0; i < nodeCount; i++)
+        {
+            struct node* node = connections[i].node;
+            int socket = connections[i].socket;
+            if (FD_ISSET(socket, &fds))
+            {
+                ssize_t size = read(socket, buffer, 1024);
+                if (size == 0)
+                {
+                    //Close
+                    printf("network * Node %d disconnected: (%s:%d)\n", node->id, node->address, node->port);
+                    close(socket);
+                    connections[i].socket = 0;
+                    continue;
+                }
+
+                printf("network * Node %d sent: %s\n", node->id, buffer);
+            }
+        }
     }
 #pragma clang diagnostic pop
-
-    /*for (int i = 0; i < nodeCount; i++)
-    {
-        if (i == this->id) continue;
-
-        struct sockaddr_in dest;
-        dest.sin_family = AF_INET;
-        dest.sin_port = htons((uint16_t)nodes[i].port);
-        dest.sin_addr.s_addr = inet_addr(nodes[i].address);
-        memset(&(dest.sin_zero), '\0', 8);
-
-        printf("Connecting to %s\n", nodes[i].address);
-        if (connect(sockd, (struct sockaddr*)&dest, sizeof(struct sockaddr)))
-        {
-            perror("Connection failed\n");
-        }
-
-        char* message = "pls respond\n";
-        ssize_t sent = send(sockd, message, strlen(message), 0);
-        printf("Sent %zu bytes\n", sent);
-    }*/
 }
