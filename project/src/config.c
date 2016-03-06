@@ -8,120 +8,10 @@
 #include <netdb.h>
 #include "config.h"
 
-int _node_with_address(int, char*, char*, struct node*);
+int nodeCount = -1;
+struct node* nodes[16];
 
-int node_count(char *filename)
-{
-    FILE* fp = fopen(filename, "r");
-    if (fp == NULL)
-    {
-        printf("Can't open file at: %s\n", filename);
-        return -1;
-    }
-
-    int lines = 0, currentPort;
-    char currentAddress[IP_ADDRESS_SIZE];
-
-    // Variables just there to only count lines that match structure. They aren't used.
-    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
-    {
-        lines++;
-    }
-
-    fclose(fp);
-    return lines;
-}
-
-int all_nodes(char *filename, struct node nodes[])
-{
-    FILE* fp = fopen(filename, "r");
-    if (fp == NULL)
-    {
-        printf("Can't open file at: %s\n", filename);
-        return -1;
-    }
-
-    int currentId = 0, currentPort;
-    char currentAddress[IP_ADDRESS_SIZE];
-
-    // Variables just there to only count lines that match structure. They aren't used.
-    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
-    {
-        strcpy(nodes[currentId].address, currentAddress);
-        nodes[currentId].port = currentPort;
-        nodes[currentId].id = currentId;
-        currentId++;
-    }
-
-    fclose(fp);
-    return currentId;
-}
-
-int node_id(char *filename, char *address, int port)
-{
-    struct node* currentNode = malloc(sizeof(struct node));
-    int lineFound = 0;
-    while ((lineFound = _node_with_address(lineFound, filename, address, currentNode)) != -1)
-    {
-        if (currentNode->port == port) break;
-        lineFound++;
-    }
-
-    if (lineFound == -1) return -1;
-    int id = currentNode->id;
-    free(currentNode);
-    return id;
-}
-
-struct node* this_node(char* filename)
-{
-    struct ifaddrs *ifaddr, *ifa;
-    int code, n;
-    char address[IP_ADDRESS_SIZE];
-
-    if (getifaddrs(&ifaddr) == -1)
-    {
-        printf("Failed to get network interface data\n");
-        return NULL;
-    }
-
-    for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
-    {
-        if (ifa->ifa_addr == NULL)
-        {
-            continue;
-        }
-
-        // Only want to deal with IPv4, and the "loopback" interface is not the one we want
-        if (ifa->ifa_addr->sa_family != AF_INET || !strcmp(ifa->ifa_name, "lo")) {
-            continue;
-        }
-
-        code = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
-                           address, NI_MAXHOST,
-                           NULL, 0, NI_NUMERICHOST);
-        if (code != 0) {
-            printf("getnameinfo() failed\n");
-            return NULL;
-        }
-    }
-
-    freeifaddrs(ifaddr);
-
-    struct node* nodePtr = malloc(sizeof(struct node));
-    int lineFound = _node_with_address(0, filename, address, nodePtr);
-    if (lineFound == -1)
-    {
-        free(nodePtr);
-        return NULL;
-    }
-    return nodePtr;
-}
-
-/**
- * Returns the line on which the node config was found, otherwise -1
- */
-int _node_with_address(int lineOffset, char* filename, char* address, struct node*nodePtr)
+int config_init(char* filename)
 {
     FILE* fp = fopen(filename, "r");
     if (fp == NULL)
@@ -135,19 +25,79 @@ int _node_with_address(int lineOffset, char* filename, char* address, struct nod
 
     while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
     {
-        if (currentLine < lineOffset) continue;
-
-        if (!strcmp(address, currentAddress))
-        {
-            fclose(fp);
-
-            nodePtr->id = currentLine;
-            nodePtr->port = currentPort;
-            strcpy(nodePtr->address, currentAddress);
-            return currentLine;
-        }
+        struct node* current = malloc(sizeof(struct node));
+        current->id = currentLine;
+        strcpy(current->address, currentAddress);
+        current->port = currentPort;
+        nodes[currentLine] = current;
+        currentLine++;
     }
 
+    nodeCount = currentLine;
     fclose(fp);
     return -1;
+}
+
+int node_count()
+{
+    return nodeCount;
+}
+
+struct node* node_for_id(int id)
+{
+    return nodes[id];
+}
+
+int get_node_id(char *address, int port)
+{
+    for (int i = 0; i < MAX_NODES; i++)
+    {
+        struct node* current = nodes[i];
+        if (!strcmp(address, current->address) && port == current->port)
+            return current->id;
+    }
+
+    return -1;
+}
+
+struct node* this_node()
+{
+    struct ifaddrs *ifaddr, *ifa;
+    char address[IP_ADDRESS_SIZE];
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        printf("Failed to get network interface data\n");
+        return NULL;
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr == NULL)
+        {
+            continue;
+        }
+
+        // Only want to deal with IPv4, and the "loopback" interface is not the one we want
+        if (ifa->ifa_addr->sa_family != AF_INET || !strcmp(ifa->ifa_name, "lo")) {
+            continue;
+        }
+
+        int code = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
+                           address, NI_MAXHOST,
+                           NULL, 0, NI_NUMERICHOST);
+        if (code != 0) {
+            printf("getnameinfo() failed\n");
+            return NULL;
+        }
+    }
+    freeifaddrs(ifaddr);
+
+    for (int i = 0; i < nodeCount; i++)
+    {
+        if (!(strcmp(address, nodes[i]->address)))
+            return nodes[i];
+    }
+
+    return NULL;
 }

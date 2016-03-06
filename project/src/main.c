@@ -20,30 +20,30 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int nodeCount = node_count(argv[1]);
-    struct node nodes[nodeCount];
-    all_nodes(argv[1], nodes);
+    config_init(argv[1]);
+    store_init();
+    store_test();
 
     struct node* thisNode;
     if (argc == 2)
     {
-        thisNode = this_node(argv[1]);
+        thisNode = this_node();
     } else
     {
         thisNode = malloc(sizeof(struct node));
         strcpy(thisNode->address, argv[2]);
         thisNode->port = atoi(argv[3]);
-        thisNode->id = node_id(argv[1], thisNode->address, thisNode->port);
+        thisNode->id = get_node_id(thisNode->address, thisNode->port);
     }
 
-    store_init();
-    store_test();
+    int nodeCount = node_count();
     printf("id: %d, host: %s, port: %d\n", thisNode->id, thisNode->address, thisNode->port);
     printf("nodeCount: %d\n", nodeCount);
     for (int i = 0; i < nodeCount; i++)
     {
-        printf("Config| id: %d, host: %s, port: %d\n", nodes[i].id, nodes[i].address, nodes[i].port);
+        struct node* current = node_for_id(i);
+        printf("Config| id: %d, host: %s, port: %d\n", current->id, current->address, current->port);
     }
 
-    network_init(nodeCount, thisNode, nodes);
+    network_init(nodeCount, thisNode);
 }

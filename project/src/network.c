@@ -8,10 +8,11 @@
 #include <string.h>
 #include <errno.h>
 #include "network.h"
+#include "config.h"
 
 struct connection* connections;
 
-void network_init(int nodeCount, struct node* this, struct node nodes[])
+void network_init(int nodeCount, struct node* this)
 {
     connections = malloc(sizeof(struct connection) * nodeCount);
     int listenSocket;
@@ -19,7 +20,7 @@ void network_init(int nodeCount, struct node* this, struct node nodes[])
 
     for (int i = 0; i < nodeCount; i++)
     {
-        connections[i].node = nodes[i];
+        connections[i].node = node_for_id(i);
         connections[i].socket = 0;
     }
 

@@ -10,7 +10,7 @@
 #include "config.h"
 
 struct connection {
-    struct node node;
+    struct node* node;
     int socket;
 };
 
@@ -18,6 +18,6 @@ struct connection {
  * Connects to each possible node, and leaves a socket open for other nodes to connect to.
  * Maintains the new connections.
  */
-void network_init(int nodeCount, struct node* this, struct node nodes[]);
+void network_init(int nodeCount, struct node* this);
 
 #endif //DISTRIBUTED_DB_NETWORK_H
