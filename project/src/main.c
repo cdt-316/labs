@@ -45,5 +45,5 @@ int main(int argc, char* argv[])
         printf("Config| id: %d, host: %s, port: %d\n", nodes[i].id, nodes[i].address, nodes[i].port);
     }
 
-    network_init(nodeCount, nodes);
+    network_init(nodeCount, thisNode, nodes);
 }
