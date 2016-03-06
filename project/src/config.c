@@ -19,11 +19,11 @@ int node_count(char* filename)
         return -1;
     }
 
-    int lines = 0, currentId, currentPort;
+    int lines = 0, currentPort;
     char currentAddress[IP_ADDRESS_SIZE];
 
     // Variables just there to only count lines that match structure. They aren't used.
-    while (fscanf(fp, "%d %s %d", &currentId, currentAddress, &currentPort) != EOF)
+    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
     {
         lines++;
     }
@@ -105,10 +105,10 @@ int _node_with_address(int lineOffset, char* filename, char* address, struct nod
         return -1;
     }
 
-    int currentLine = 0, currentId, currentPort;
+    int currentLine = 0, currentPort;
     char currentAddress[IP_ADDRESS_SIZE];
 
-    while (fscanf(fp, "%d %s %d", &currentId, currentAddress, &currentPort) != EOF)
+    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
     {
         if (currentLine < lineOffset) continue;
 
@@ -116,7 +116,7 @@ int _node_with_address(int lineOffset, char* filename, char* address, struct nod
         {
             fclose(fp);
 
-            nodePtr->id = currentId;
+            nodePtr->id = currentLine;
             nodePtr->port = currentPort;
             strcpy(nodePtr->address, currentAddress);
             return currentLine;
