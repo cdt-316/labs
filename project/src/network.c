@@ -8,21 +8,71 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/prctl.h>
+#include <signal.h>
 #include "network.h"
 
 struct connection connections[MAX_NODES];
 
+void _connection_listen(int, struct node *);
+void _attempt_connections(int, struct node *);
+
 void network_init(int nodeCount, struct node* this)
 {
-    char buffer[1024];
-    int listenSocket;
-    fd_set fds;
-
     for (int i = 0; i < nodeCount; i++)
     {
         connections[i].node = node_for_id(i);
         connections[i].socket = 0;
     }
+
+    _attempt_connections(nodeCount, this);
+
+    pid_t childPid = fork();
+    if (childPid < 0)
+        perror("Forking failed\n");
+
+    if (childPid == 0)
+    {
+        printf("Forked thread to listen for connections\n");
+        prctl(PR_SET_PDEATHSIG, SIGHUP); // Ask for forked thread to be killed when parent dies
+        _connection_listen(nodeCount, this);
+    }
+
+    getchar();
+}
+
+void _attempt_connections(int nodeCount, struct node *this)
+{
+    for (int i = 0; i < nodeCount; i++)
+    {
+        if (i == this->id)
+            continue;
+
+        struct node* current = node_for_id(i);
+
+        int sockd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in dest;
+        dest.sin_family = AF_INET;
+        dest.sin_port = htons((uint16_t) current->port);
+        dest.sin_addr.s_addr = inet_addr(current->address);
+        memset(&(dest.sin_zero), '\0', 8);
+
+        if (connect(sockd, (struct sockaddr*)&dest, sizeof(struct sockaddr)))
+        {
+            close(sockd);
+            continue;
+        }
+
+        printf("network * Connected to node %d: (%s:%d)\n", i, current->address, current->port);
+        connections[i].socket = sockd;
+    }
+}
+
+void _connection_listen(int nodeCount, struct node *this)
+{
+    char buffer[1024];
+    int listenSocket;
+    fd_set fds;
 
     listenSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSocket < 0)
@@ -82,8 +132,6 @@ void network_init(int nodeCount, struct node* this)
             int nodeId = node_id(ipAddress, port);
             printf("network * Node %d connected: (%s:%d)\n", nodeId, ipAddress, port);
             connections[nodeId].socket = newSocket;
-
-            struct timeval tv;
         }
 
         for (int i = 0; i < nodeCount; i++)
