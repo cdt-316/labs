@@ -1,3 +1,3 @@
-set(SOURCE_FILES main.c store.h store.c config.h config.c client.c)
+set(SOURCE_FILES main.c store.h store.c config.h config.c client.c network.h network.c)
 add_executable(distributed-db ${SOURCE_FILES})
 

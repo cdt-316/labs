@@ -8,28 +8,61 @@
 #include <netdb.h>
 #include "config.h"
 
-int _node_with_address(int, char*, char*, struct node*);
+int nodeCount = -1;
+struct node* nodes[16];
 
-int id(char* filename, char* address, int port)
+int config_init(char* filename)
 {
-    struct node* currentNode = malloc(sizeof(struct node));
-    int lineFound = 0;
-    while ((lineFound = _node_with_address(lineFound, filename, address, currentNode)) != -1)
+    FILE* fp = fopen(filename, "r");
+    if (fp == NULL)
     {
-        if (currentNode->port == port) break;
-        lineFound++;
+        printf("Can't open file at: %s\n", filename);
+        return -1;
     }
 
-    if (lineFound == -1) return -1;
-    int id = currentNode->id;
-    free(currentNode);
-    return id;
+    int currentLine = 0, currentPort;
+    char currentAddress[IP_ADDRESS_SIZE];
+
+    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
+    {
+        struct node* current = malloc(sizeof(struct node));
+        current->id = currentLine;
+        strcpy(current->address, currentAddress);
+        current->port = currentPort;
+        nodes[currentLine] = current;
+        currentLine++;
+    }
+
+    nodeCount = currentLine;
+    fclose(fp);
+    return -1;
 }
 
-struct node* this_node(char* filename)
+int node_count()
+{
+    return nodeCount;
+}
+
+struct node* node_for_id(int id)
+{
+    return nodes[id];
+}
+
+int node_id(char *address, int port)
+{
+    for (int i = 0; i < nodeCount; i++)
+    {
+        struct node* current = nodes[i];
+        if (!strcmp(address, current->address) && port == current->port)
+            return current->id;
+    }
+
+    return -1;
+}
+
+struct node* this_node()
 {
     struct ifaddrs *ifaddr, *ifa;
-    int code, n;
     char address[IP_ADDRESS_SIZE];
 
     if (getifaddrs(&ifaddr) == -1)
@@ -38,7 +71,7 @@ struct node* this_node(char* filename)
         return NULL;
     }
 
-    for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
     {
         if (ifa->ifa_addr == NULL)
         {
@@ -50,7 +83,7 @@ struct node* this_node(char* filename)
             continue;
         }
 
-        code = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
+        int code = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
                            address, NI_MAXHOST,
                            NULL, 0, NI_NUMERICHOST);
         if (code != 0) {
@@ -58,49 +91,13 @@ struct node* this_node(char* filename)
             return NULL;
         }
     }
-
     freeifaddrs(ifaddr);
 
-    struct node* nodePtr = malloc(sizeof(struct node));
-    int lineFound = _node_with_address(0, filename, address, nodePtr);
-    if (lineFound == -1)
+    for (int i = 0; i < nodeCount; i++)
     {
-        free(nodePtr);
-        return NULL;
-    }
-    return nodePtr;
-}
-
-/**
- * Returns the line on which the node config was found, otherwise -1
- */
-int _node_with_address(int lineOffset, char* filename, char* address, struct node*nodePtr)
-{
-    FILE* fp = fopen(filename, "r");
-    if (fp == NULL)
-    {
-        printf("Can't open file at: %s\n", filename);
-        return -1;
+        if (!(strcmp(address, nodes[i]->address)))
+            return nodes[i];
     }
 
-    int currentLine = 0, currentId, currentPort;
-    char currentAddress[IP_ADDRESS_SIZE];
-
-    while (fscanf(fp, "%d %s %d", &currentId, currentAddress, &currentPort) != EOF)
-    {
-        if (currentLine < lineOffset) continue;
-
-        if (!strcmp(address, currentAddress))
-        {
-            fclose(fp);
-
-            nodePtr->id = currentId;
-            nodePtr->port = currentPort;
-            strcpy(nodePtr->address, currentAddress);
-            return currentLine;
-        }
-    }
-
-    fclose(fp);
-    return -1;
+    return NULL;
 }

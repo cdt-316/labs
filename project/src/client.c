@@ -73,7 +73,7 @@ void run_client()
                 resourceCount++;
             }
 
-            store_write(0, resourceCount, entryList);
+            store_write(resourceCount, entryList);
 
             break;
 
@@ -86,7 +86,7 @@ void run_client()
                 resourceCount++;
             }
 
-            store_read(0, resourceCount, nameList, entryList);
+            store_read(resourceCount, nameList, entryList);
 
             break;
 

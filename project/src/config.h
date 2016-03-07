@@ -5,6 +5,7 @@
 #ifndef DISTRIBUTED_DB_CONFIG_H
 #define DISTRIBUTED_DB_CONFIG_H
 #define IP_ADDRESS_SIZE 16
+#define MAX_NODES 16
 
 struct node {
     int id;
@@ -13,15 +14,32 @@ struct node {
 };
 
 /**
- * Returns the id of the ip at the address and port specified.
- * If an error occurs, or the node couldn't be found, -1 is returned.
+ * Initializes config, loading the nodes into memory.
+ * Returns -1 if something goes wrong
  */
-int id(char *filename, char *address, int port);
+int config_init(char* filename);
 
 /**
- * Returns the data of the node with the address specified.
- * If an error occurs, or the node couldn't be found, NULL is returned
+ * Returns the total number of nodes in configuration, or -1 if config hasn't been set up yet
  */
-struct node* this_node(char *filename);
+int node_count();
+
+/**
+ * Returns the node that has the requested id.
+ * Returns NULL if an error occurs
+ */
+struct node* node_for_id(int id);
+
+/**
+ * Returns the id of the node at the address and port specified.
+ * If configuration hasn't been init, or the node couldn't be found returns -1
+ */
+int node_id(char *address, int port);
+
+/**
+ * Returns the first node with the same ip address as the curent machine
+ * If the node couldn't be found, NULL is returned
+ */
+struct node* this_node();
 
 #endif //DISTRIBUTED_DB_CONFIG_H

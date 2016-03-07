@@ -1,41 +1,46 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "store.h"
 #include "config.h"
-#include "store-test.c"
-#include "client.h"
-
-struct lock {
-    int id;
-    int nameCount;
-    char* names[MAX_NAME_LENGTH];
-};
+#include "network.h"
 
 int main(int argc, char* argv[])
 {
-    //remove this !
-    run_client();
-
     if (argc != 2 && argc != 4)
     {
-        printf("Usage: distributed-db config-file [address port]\n");
+        printf("Usage: distributed-db config-file [address, port]\n");
         printf("Where 'address' and 'port' can be (optionally) manually specified\n");
         printf("If not specified, then 'address' and 'port' will be autodetected from the system and config file\n");
         return 1;
     }
 
+    config_init(argv[1]);
+    store_init();
+
     struct node* thisNode;
     if (argc == 2)
     {
-        thisNode = this_node(argv[1]);
+        thisNode = this_node();
     } else
     {
         thisNode = malloc(sizeof(struct node));
         strcpy(thisNode->address, argv[2]);
         thisNode->port = atoi(argv[3]);
-        thisNode->id = id(argv[1], thisNode->address, thisNode->port);
+        thisNode->id = node_id(thisNode->address, thisNode->port);
     }
 
-    store_init();
-    store_test();
+    int nodeCount = node_count();
     printf("id: %d, host: %s, port: %d\n", thisNode->id, thisNode->address, thisNode->port);
+
+    printf("nodeCount: %d\n", nodeCount);
+    for (int i = 0; i < nodeCount; i++)
+    {
+        struct node* current = node_for_id(i);
+        printf("Config| id: %d, host: %s, port: %d\n", current->id, current->address, current->port);
+    }
+
+    network_init(nodeCount, thisNode);
+
+    run_client();
 }

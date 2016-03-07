@@ -41,10 +41,11 @@ machine.
 
 ### Config file
 
-In the following example's format, separated by spaces:
+In the following example's format:
 ```
-0 193.11.112.192 9001
-1 192.168.123.333 9002
-2 193.11.112.177 9003
+193.11.112.192 9001
+192.168.123.333 9002
+193.11.112.177 9003
 ```
-Where the first column is "id", second column is "address" and third column is "port"
+Where the first column is "address" and second column is "port". Implicitly, each line has an id. This id is the current
+line number, starting from 0.
