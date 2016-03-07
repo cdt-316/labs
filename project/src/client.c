@@ -29,7 +29,7 @@ void run_client()
     int commandType = 0;
     int resourceCount = 0;
     struct resource entryList[MAX_NUM_OF_ENTRIES];
-    char nameList[MAX_NUM_OF_ENTRIES][MAX_ARG_LENGTH];
+    char* namePtr[MAX_NUM_OF_ENTRIES];
 
     printf("Enter commands: \n");
 
@@ -66,40 +66,36 @@ void run_client()
         switch(commandType)
         {
             case WRITE_COMMAND:
-            printf("WRITE command!");
+                printf("WRITE command!\n");
 
-            for(int i = 1; i < numOfTokens; i += 2)
-            {
-                strcpy(entryList[resourceCount].name,  tokenList[i]);
-                strcpy(entryList[resourceCount].value, tokenList[i+1]);
-                resourceCount++;
-            }
+                for(int i = 1; i < numOfTokens; i += 2)
+                {
+                    strcpy(entryList[resourceCount].name,  tokenList[i]);
+                    strcpy(entryList[resourceCount].value, tokenList[i+1]);
+                    resourceCount++;
+                }
 
-            store_write(resourceCount, entryList);
+                store_write(resourceCount, entryList);
 
-            break;
+                break;
 
             case READ_COMMAND:
-            printf("READ command!");
+                printf("READ command!\n");
 
-             for(int i = 1; i < numOfTokens; i++)
-            {
-                strcpy(nameList[resourceCount],  tokenList[i]);
-                resourceCount++;
-            }
+                for (int i = 1; i < numOfTokens; i++)
+                {
+                    namePtr[resourceCount] = tokenList[i];
+                    resourceCount++;
+                }
 
-            store_read(resourceCount, nameList, entryList);
+                store_read(resourceCount, namePtr, entryList);
 
-            break;
+                break;
 
             case UNKNOWN_COMMAND:
-            printf("Unknown command!");
-
-            break;
-
             default:
-            printf("Unknown command!");
-            break;
+                printf("Unknown command!");
+                break;
         }
 
         printf("\n");
