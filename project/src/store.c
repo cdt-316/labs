@@ -8,12 +8,8 @@
 #include <stdio.h>
 #include "store.h"
 
-int _lock_exists(int, int, char*[]);
-
 struct lock {
-    int id;
-    int nameCount;
-    char* names[MAX_RESOURCES];
+    char* name;
 };
 
 struct lock* locks[MAX_LOCKS];
@@ -32,7 +28,7 @@ void store_init()
     }
 }
 
-int lock(int id, int nameCount, char* nameList[])
+int lock(char* name)
 {
     int empty = -1;
     for (int i = 0; i < MAX_LOCKS; i++)
@@ -44,18 +40,10 @@ int lock(int id, int nameCount, char* nameList[])
         }
 
         struct lock* oldLock = locks[i];
-
-        for (int oldIndex = 0; oldIndex < oldLock->nameCount; oldIndex++)
+        if (!strcmp(oldLock->name, name))
         {
-            for (int newIndex = 0; newIndex < nameCount; newIndex++)
-            {
-                // If a lock already exists for a requested resource
-                if (!strcmp(oldLock->names[oldIndex], nameList[newIndex]))
-                {
-                    // Can't allocate lock because one already exists for one of the requested resources
-                    return 1;
-                }
-            }
+            // Can't allocate lock because one already exists for the requested resource
+            return 1;
         }
     }
 
@@ -65,15 +53,7 @@ int lock(int id, int nameCount, char* nameList[])
     }
 
     struct lock* newLock = malloc(sizeof(struct lock));
-    newLock->id = id;
-    newLock->nameCount = nameCount;
-
-    for (int i = 0; i < nameCount; i++)
-    {
-        newLock->names[i] = malloc(strlen(nameList[i]));
-        strcpy(newLock->names[i], nameList[i]);
-    }
-
+    strcpy(newLock->name, name);
     locks[empty] = newLock;
     return 0;
 }
@@ -85,32 +65,33 @@ int is_unlocked(char* name)
         if (locks[i] == NULL) continue;
 
         struct lock* current = locks[i];
-        for (int j = 0; j < current->nameCount; j++)
-        {
-            if (!strcmp(name, current->names[j]))
-                return 1;
-        }
+        if (!strcmp(name, current->name))
+            return 1;
     }
 
     return 0;
 }
 
-int unlock(int id, int nameCount, char* nameList[])
+int unlock(char* name)
 {
-    int index = _lock_exists(id, nameCount, nameList);
-    if (index == -1) return 1;
-
-    for (int i = 0; i < locks[index]->nameCount; i++)
+    int index;
+    for (index = 0; index < MAX_LOCKS; index++)
     {
-        free(locks[index]->names[i]);
+        if (locks[index] == NULL) continue;
+        struct lock* current = locks[index];
+        if (!strcmp(current->name, name))
+            break;
     }
 
+    if (index == -1) return 1;
+
+    free(locks[index]->name);
     free(locks[index]);
     locks[index] = NULL;
     return 0;
 }
 
-int store_write(int id, int resourceCount, struct resource entryList[])
+int store_write(int resourceCount, struct resource entryList[])
 {
     int needsPosition = 0; // The next resource in the list that needs a location in `resources` to have a pointer
     int resourceIndices[resourceCount]; // A list of "spots" in `resources` for a pointer to a new resource
@@ -121,8 +102,6 @@ int store_write(int id, int resourceCount, struct resource entryList[])
         resourceIndices[i] = -1;
         nameList[i] = entryList[i].name;
     }
-
-    if (_lock_exists(id, resourceCount, nameList) == -1) return 1;
 
     for (int i = 0; i < MAX_RESOURCES; i++)
     {
@@ -167,10 +146,8 @@ int store_write(int id, int resourceCount, struct resource entryList[])
     return 0;
 }
 
-int store_read(int id, int nameCount, char* nameList[], struct resource entryList[])
+int store_read(int nameCount, char* nameList[], struct resource entryList[])
 {
-    if (_lock_exists(id, nameCount, nameList) == -1) return 1;
-
     for (int i = 0; i < nameCount; i++)
     {
         // Some resources won't exist, and they should be returned with the proper name and an empty string as the value
@@ -193,36 +170,4 @@ int store_read(int id, int nameCount, char* nameList[], struct resource entryLis
     }
 
     return 0;
-}
-
-/**
- * Returns the index of the lock that matches the provided resource names and lock owner.
- * If such a lock exists, returns the index of the lock. Otherwise, returns -1.
- */
-int _lock_exists(int id, int nameCount, char* nameList[])
-{
-    int index = -1;
-    for (int i = 0; i < MAX_LOCKS; i++)
-    {
-        if (locks[i] == NULL) continue;
-        struct lock existing = *locks[i];
-        if (existing.nameCount != nameCount) continue;
-        index = i; // This might be the lock to remove
-
-        for (int nameIndex = 0; nameIndex < existing.nameCount; nameIndex++)
-        {
-            // If any of the names don't match, then this isn't the lock that we're looking for
-            if (strcmp(existing.names[nameIndex], nameList[nameIndex]))
-            {
-                // This is not the lock to remove
-                index = -1;
-                break;
-            }
-        }
-
-        if (index != -1) break;
-    }
-
-    if (index == -1 || locks[index]->id != id) return -1;
-    return index;
 }

@@ -1,14 +1,9 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "store.h"
 #include "config.h"
-#include "store-test.c"
 #include "network.h"
-
-struct lock {
-    int id;
-    int nameCount;
-    char* names[MAX_NAME_LENGTH];
-};
 
 int main(int argc, char* argv[])
 {
@@ -22,7 +17,6 @@ int main(int argc, char* argv[])
 
     config_init(argv[1]);
     store_init();
-    store_test();
 
     struct node* thisNode;
     if (argc == 2)

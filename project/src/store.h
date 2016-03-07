@@ -26,12 +26,12 @@ void store_init();
  * 1: lock already exists on at least one of the requested resources
  * 2: out of space to acquire locks
  */
-int lock(int id, int nameCount, char* nameList[]);
+int lock(char* name);
 
 /**
  * Returns 0 if the resource is unlocked, otherwise 1
  */
-int is_unlocked(char* resource);
+int is_unlocked(char* name);
 
 /**
  * Unlock the requested resources so that some other node can use them.
@@ -41,7 +41,7 @@ int is_unlocked(char* resource);
  * 0: success
  * 1: generic error
  */
-int unlock(int id, int nameCount, char* nameList[]);
+int unlock(char* name);
 
 /**
  * Writes the provided list of resources, if a lock exists for all the resources for the specified id.
@@ -51,7 +51,7 @@ int unlock(int id, int nameCount, char* nameList[]);
  * 1: lock didn't exist for id and resources
  * 2: ran out of space to put resources
  */
-int store_write(int id, int resourceCount, struct resource entryList[]);
+int store_write(int resourceCount, struct resource entryList[]);
 
 /**
  * Will read the resources listed in "nameList". If a lock does not exist for all
@@ -64,6 +64,6 @@ int store_write(int id, int resourceCount, struct resource entryList[]);
  * 0: success
  * 1: generic error
  */
-int store_read(int id, int nameCount, char* nameList[], struct resource entryList[]);
+int store_read(int nameCount, char* nameList[], struct resource entryList[]);
 
 #endif // STORE_H_INCLUDED

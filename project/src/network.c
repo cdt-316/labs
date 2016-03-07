@@ -17,7 +17,7 @@ struct connection connections[MAX_NODES];
 
 void _connection_listen(int, struct node *);
 void _attempt_connections(int, struct node *);
-void _parse_request(int, char[]);
+void _parse_request(char[]);
 
 void network_init(int nodeCount, struct node* this)
 {
@@ -157,7 +157,7 @@ void _connection_listen(int nodeCount, struct node *this)
                 copy[size - 1] = '\0';
 
                 printf("network * N%d -> \"%s\"\n", node->id, copy);
-                _parse_request(node->id, copy);
+                _parse_request(copy);
 
                 if (strlen(copy) == 0)
                 {
@@ -171,7 +171,7 @@ void _connection_listen(int nodeCount, struct node *this)
 #pragma clang diagnostic pop
 }
 
-void _parse_request(int nodeId, char* message)
+void _parse_request(char* message)
 {
     char command = message[0];
     int response;
@@ -210,7 +210,7 @@ void _parse_request(int nodeId, char* message)
                 resourceValue = strtok(NULL, "= ");
             }
 
-            response = store_write(nodeId, i, list);
+            response = store_write(i, list);
             free(list);
 
             if (response < 0) response = 1;
