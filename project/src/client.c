@@ -49,16 +49,6 @@ void run_client()
             numOfTokens++;
         }
 
-        //remove later
-        for(int i = 0; i < numOfTokens; i++)
-        {
-            printf("Arg[%d] is: %s\n", i, tokenList[i]);
-        }
-
-        //remove later
-        printf("Number of tokens read: %d", numOfTokens);
-        printf("\n");
-
         commandType = getCommandType(numOfTokens, tokenList);
         resourceCount = 0;
 
