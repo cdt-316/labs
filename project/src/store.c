@@ -15,15 +15,12 @@ struct lock {
 struct lock* locks[MAX_LOCKS];
 struct resource* resources[MAX_RESOURCES];
 
-void store_init()
-{
-    for (int i = 0; i < MAX_LOCKS; i++)
-    {
+void store_init() {
+    for (int i = 0; i < MAX_LOCKS; i++) {
         locks[i] = NULL;
     }
 
-    for (int i = 0; i < MAX_RESOURCES; i++)
-    {
+    for (int i = 0; i < MAX_RESOURCES; i++) {
         resources[i] = NULL;
     }
 }

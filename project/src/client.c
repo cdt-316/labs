@@ -67,8 +67,6 @@ void run_client()
                 break;
 
             case READ_COMMAND:
-                printf("READ command!\n");
-
                 for (int i = 1; i < numOfTokens; i++)
                 {
                     namePtr[resourceCount] = tokenList[i];
@@ -86,7 +84,7 @@ void run_client()
 
             case UNKNOWN_COMMAND:
             default:
-                printf("Unknown command!");
+                printf("Unknown command. Use \"read\" or \"write\"\n");
                 break;
         }
 

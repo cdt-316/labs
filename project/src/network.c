@@ -8,19 +8,20 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/prctl.h>
-#include <signal.h>
+#include <pthread.h>
 #include "network.h"
 #include "store.h"
 
 struct connection connections[MAX_NODES];
+struct node* this;
 
-void _connection_listen(int, struct node *);
+void * _connection_listen(void *);
 void _attempt_connections(int, struct node *);
 void _parse_request(char[]);
 
-void network_init(int nodeCount, struct node* this)
+void network_init(int nodeCount, struct node* thisNode)
 {
+    this = thisNode;
     for (int i = 0; i < nodeCount; i++)
     {
         connections[i].node = node_for_id(i);
@@ -28,16 +29,9 @@ void network_init(int nodeCount, struct node* this)
     }
 
     _attempt_connections(nodeCount, this);
-
-    pid_t childPid = fork();
-    if (childPid < 0)
-        perror("Forking failed\n");
-
-    if (childPid == 0)
-    {
-        prctl(PR_SET_PDEATHSIG, SIGHUP); // Ask for forked thread to be killed when parent dies
-        _connection_listen(nodeCount, this);
-    }
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, _connection_listen, &nodeCount))
+        printf("Failed to create listen thread\n");
 
     usleep(100); // Cheesy delay so that "Enter commands:" appears after "Listening" message
 }
@@ -69,8 +63,10 @@ void _attempt_connections(int nodeCount, struct node *this)
     }
 }
 
-void _connection_listen(int nodeCount, struct node *this)
+//void _connection_listen(int nodeCount, struct node *this)
+void * _connection_listen(void * arg)
 {
+    int nodeCount = *(int *)(arg);
     char buffer[1024];
     int listenSocket;
     fd_set fds;
@@ -203,13 +199,14 @@ void _parse_request(char* message)
 
                 strcpy(list[i].name, resourceName);
                 strcpy(list[i].value, resourceValue);
-                printf("network * Writing %s to %s\n", list[i].name, list[i].value);
+                printf("network * Writing %s=%s\n", list[i].name, list[i].value);
 
                 resourceName = strtok(NULL, "= ");
                 resourceValue = strtok(NULL, "= ");
             }
 
             response = store_write(i, list);
+            printf("write response %d\n", response);
             free(list);
 
             if (response < 0) response = 1;
