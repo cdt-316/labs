@@ -4,6 +4,7 @@
 #include "store.h"
 #include "config.h"
 #include "network.h"
+#include "client.h"
 
 int main(int argc, char* argv[])
 {
@@ -30,17 +31,13 @@ int main(int argc, char* argv[])
         thisNode->id = node_id(thisNode->address, thisNode->port);
     }
 
-    int nodeCount = node_count();
-    printf("id: %d, host: %s, port: %d\n", thisNode->id, thisNode->address, thisNode->port);
-
-    printf("nodeCount: %d\n", nodeCount);
-    for (int i = 0; i < nodeCount; i++)
+    for (int i = 0; i < node_count(); i++)
     {
         struct node* current = node_for_id(i);
         printf("Config| id: %d, host: %s, port: %d\n", current->id, current->address, current->port);
     }
+    printf("This Node| id: %d, host: %s, port: %d\n", thisNode->id, thisNode->address, thisNode->port);
 
-    network_init(nodeCount, thisNode);
-
+    network_init(node_count(), thisNode);
     run_client();
 }
