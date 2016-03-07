@@ -135,7 +135,7 @@ int store_write(int resourceCount, struct resource* entryList)
         resources[index] = newResource;
     }
 
-    return 0;
+    return remote_write(resourceCount, entryList);
 }
 
 int store_read(int nameCount, char** nameList, struct resource* entryList)

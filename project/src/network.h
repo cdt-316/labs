@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "config.h"
+#include "store.h"
 
 struct connection {
     struct node* node;
@@ -25,5 +26,11 @@ void network_init(int nodeCount, struct node* this);
  * Returns a 0 if the resource is available, otherwise one
  */
 int isRemotelyLocked(char* resource);
+
+/**
+ * Spreads write request to all connected nodes.
+ * Returns 0 if successful, otherwise 1
+ */
+int remote_write(int resourceCount, struct resource* entryList);
 
 #endif //DISTRIBUTED_DB_NETWORK_H
