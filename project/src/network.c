@@ -39,8 +39,6 @@ void network_init(int nodeCount, struct node* this)
         prctl(PR_SET_PDEATHSIG, SIGHUP); // Ask for forked thread to be killed when parent dies
         _connection_listen(nodeCount, this);
     }
-
-    getchar();
 }
 
 void _attempt_connections(int nodeCount, struct node *this)
