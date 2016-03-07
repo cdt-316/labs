@@ -20,4 +20,10 @@ struct connection {
  */
 void network_init(int nodeCount, struct node* this);
 
+/**
+ * Asks all other alive nodes if the requested resource is available for locking.
+ * Returns a 0 if the resource is available, otherwise one
+ */
+int isRemotelyLocked(char* resource);
+
 #endif //DISTRIBUTED_DB_NETWORK_H

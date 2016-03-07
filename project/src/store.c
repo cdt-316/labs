@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "store.h"
+#include "network.h"
 
 char* locks[MAX_LOCKS];
 struct resource* resources[MAX_RESOURCES];
@@ -51,6 +52,11 @@ int lock(char* name)
         }
     }
 
+    // Everything looks good locally, time to check the network
+    if (isRemotelyLocked(name))
+        return 1;
+
+    // Check if there's space for the new lock
     if (empty == -1)
     {
         return 2;

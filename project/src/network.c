@@ -9,15 +9,18 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include "network.h"
 #include "store.h"
 
+int responses[MAX_NODES];
 struct connection connections[MAX_NODES];
 struct node* this;
+sem_t remoteLockSemaphore;
 
 void * _connection_listen(void *);
 void _attempt_connections(int, struct node *);
-void _parse_request(char[]);
+void _parse_request(char[], int);
 
 void network_init(int nodeCount, struct node* thisNode)
 {
@@ -29,6 +32,7 @@ void network_init(int nodeCount, struct node* thisNode)
     }
 
     _attempt_connections(nodeCount, this);
+    sem_init(&remoteLockSemaphore, 0, 0);
     pthread_t thread;
     if (pthread_create(&thread, NULL, _connection_listen, &nodeCount))
         printf("Failed to create listen thread\n");
@@ -152,7 +156,7 @@ void * _connection_listen(void * arg)
                 copy[size - 1] = '\0';
 
                 printf("network * N%d -> \"%s\"\n", node->id, copy);
-                _parse_request(copy);
+                _parse_request(copy, node->id);
 
                 if (strlen(copy) == 0)
                 {
@@ -166,10 +170,11 @@ void * _connection_listen(void * arg)
 #pragma clang diagnostic pop
 }
 
-void _parse_request(char* message)
+void _parse_request(char* message, int id)
 {
     char command = message[0];
     int response;
+    char responseNumber[2];
     switch (command)
     {
         case 'L':
@@ -213,7 +218,13 @@ void _parse_request(char* message)
             sprintf(message - 1, "!%d\n", response);
             break;
         case '!':
-            printf("network * Reply to previous request\n");
+            responseNumber[0] = message[1];
+            responseNumber[1] = '\0';
+            int before = responses[id];
+            responses[id] = atoi(responseNumber);
+
+            if (before == 2)
+                sem_post(&remoteLockSemaphore);
             strcpy(message, "");
             break;
         default:
@@ -221,4 +232,40 @@ void _parse_request(char* message)
             strcpy(message, "");
             break;
     }
+}
+
+int isRemotelyLocked(char* resource)
+{
+    char* message = malloc(sizeof(char) * strlen(resource) + 2);
+    sprintf(message, "L%s", resource);
+    for (int i = 0; i < node_count(); i++)
+    {
+        if (i == this->id)
+        {
+            responses[i] = 0;
+            continue;
+        }
+
+        // 0: ACK
+        // 1: NACK
+        // 2: No response
+
+        responses[i] = 2;
+        send(connections[i].socket, message, sizeof(message), 0);
+    }
+
+    int done = 2;
+    while (done == 2)
+    {
+        sem_wait(&remoteLockSemaphore);
+        done = 0;
+
+        for (int i = 0; i < node_count(); i++)
+        {
+            if (responses[i] > done)
+                done = responses[i];
+        }
+    }
+
+    return done;
 }
