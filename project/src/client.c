@@ -72,7 +72,7 @@ void run_client()
                 }
 
                 if (!lockFailed)
-                    store_write(resourceCount, entryList);
+                    store_write(resourceCount, entryList, 0);
 
                 for (int i = resourceCount - 1; i >= 0; i--)
                 {

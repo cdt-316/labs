@@ -83,7 +83,7 @@ int unlock(char* name)
     return 0;
 }
 
-int store_write(int resourceCount, struct resource* entryList)
+int store_write(int resourceCount, struct resource* entryList, int thisOnly)
 {
     int needsPosition = 0; // The next resource in the list that needs a location in `resources` to have a pointer
     int resourceIndices[resourceCount]; // A list of "spots" in `resources` for a pointer to a new resource
@@ -134,6 +134,9 @@ int store_write(int resourceCount, struct resource* entryList)
         strncpy(newResource->value, entryList[i].value, MAX_VALUE_LENGTH);
         resources[index] = newResource;
     }
+
+    if (thisOnly)
+        return 0;
 
     return remote_write(resourceCount, entryList);
 }

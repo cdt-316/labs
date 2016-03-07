@@ -12,6 +12,8 @@
 #include <semaphore.h>
 #include "network.h"
 
+#define LISTEN_PORT 9001
+
 int responses[MAX_NODES];
 struct connection connections[MAX_NODES];
 struct node* this;
@@ -52,7 +54,7 @@ void _attempt_connections(int nodeCount, struct node *this)
         int sockd = socket(AF_INET, SOCK_STREAM, 0);
         struct sockaddr_in dest;
         dest.sin_family = AF_INET;
-        dest.sin_port = htons((uint16_t) current->port);
+        dest.sin_port = htons(LISTEN_PORT);
         dest.sin_addr.s_addr = inet_addr(current->address);
         memset(&(dest.sin_zero), '\0', 8);
 
@@ -62,7 +64,7 @@ void _attempt_connections(int nodeCount, struct node *this)
             continue;
         }
 
-        printf("network * Connected to node %d: (%s:%d)\n", i, current->address, current->port);
+        printf("network * Connected to node: %d|%s\n", i, current->address);
         connections[i].socket = sockd;
     }
 }
@@ -84,7 +86,7 @@ void * _connection_listen(void * arg)
 
     struct sockaddr_in address;
     address.sin_family = AF_INET;
-    address.sin_port = htons((uint16_t)this->port);
+    address.sin_port = htons(LISTEN_PORT);
     address.sin_addr.s_addr = inet_addr(this->address);
     memset(&(address.sin_zero), '\0', 8);
 
@@ -142,10 +144,9 @@ void * _connection_listen(void * arg)
                 perror("Accept failed\n");
 
             char* ipAddress = inet_ntoa(address.sin_addr);
-            int port = ntohs(address.sin_port);
 
-            int nodeId = node_id(ipAddress, port);
-            printf("network * Node %d connected: (%s:%d)\n", nodeId, ipAddress, port);
+            int nodeId = node_id(ipAddress);
+            printf("network * Node connected: %d|%s\n", nodeId, ipAddress);
             connections[nodeId].socket = newSocket;
         }
 
@@ -159,7 +160,7 @@ void * _connection_listen(void * arg)
                 if (size == 0)
                 {
                     //Close
-                    printf("network * Node %d disconnected: (%s:%d)\n", node->id, node->address, node->port);
+                    printf("network * Node disconnected: %d|%s\n", node->id, node->address);
                     close(socket);
                     connections[i].socket = 0;
                     continue;
@@ -224,8 +225,7 @@ void _parse_request(char* message, int id)
                 resourceValue = strtok(NULL, "= ");
             }
 
-            response = store_write(i, list);
-            printf("write response %d\n", response);
+            response = store_write(i, list, 1);
             free(list);
 
             if (response < 0) response = 1;
@@ -299,10 +299,11 @@ int remote_write(int resourceCount, struct resource* entryList)
     int messageSize = resourceCount * MAX_NAME_LENGTH;
     messageSize += resourceCount * MAX_VALUE_LENGTH;
     messageSize += resourceCount * 2; // for the '=' and ' '
-    messageSize += 2; //For \n and \0
+    messageSize += 3; //For W, \n and \0
     char message[messageSize];
+    message[0] = 'W';
 
-    int offset = 0;
+    int offset = 1;
     for (int i = 0; i < resourceCount; i++)
     {
         // Resource name

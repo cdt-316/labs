@@ -48,13 +48,14 @@ int unlock(char* name);
 
 /**
  * Writes the provided list of resources, if a lock exists for all the resources for the specified id.
+ * If thisOnly is true, the write won't be propogated to other nodes
  *
  * Returns:
  * 0: success
  * 1: lock didn't exist for id and resources
  * 2: ran out of space to put resources
  */
-int store_write(int resourceCount, struct resource* entryList);
+int store_write(int resourceCount, struct resource* entryList, int thisOnly);
 
 /**
  * Will read the resources listed in "nameList". If a lock does not exist for all
