@@ -35,10 +35,11 @@ void network_init(int nodeCount, struct node* this)
 
     if (childPid == 0)
     {
-        printf("Forked thread to listen for connections\n");
         prctl(PR_SET_PDEATHSIG, SIGHUP); // Ask for forked thread to be killed when parent dies
         _connection_listen(nodeCount, this);
     }
+
+    usleep(100); // Cheesy delay so that "Enter commands:" appears after "Listening" message
 }
 
 void _attempt_connections(int nodeCount, struct node *this)
