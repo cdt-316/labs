@@ -3,6 +3,7 @@
 
 #define MAX_NAME_LENGTH 50
 #define MAX_VALUE_LENGTH 50
+#define MAX_RESOURCES 128
 
 /**
  * A key-value resource
@@ -26,6 +27,11 @@ void store_init();
  * 2: out of space to acquire locks
  */
 int lock(int id, int nameCount, char* nameList[]);
+
+/**
+ * Returns 0 if the resource is unlocked, otherwise 1
+ */
+int is_unlocked(char* resource);
 
 /**
  * Unlock the requested resources so that some other node can use them.

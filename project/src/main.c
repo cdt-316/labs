@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 {
     if (argc != 2 && argc != 4)
     {
-        printf("Usage: distributed-db config-file [address port]\n");
+        printf("Usage: distributed-db config-file [address, port]\n");
         printf("Where 'address' and 'port' can be (optionally) manually specified\n");
         printf("If not specified, then 'address' and 'port' will be autodetected from the system and config file\n");
         return 1;

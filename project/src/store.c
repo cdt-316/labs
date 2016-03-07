@@ -3,7 +3,6 @@
 //
 
 #define MAX_LOCKS 8
-#define MAX_RESOURCES 128
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,14 +43,14 @@ int lock(int id, int nameCount, char* nameList[])
             continue;
         }
 
-        struct lock oldLock = *locks[i];
+        struct lock* oldLock = locks[i];
 
-        for (int oldIndex = 0; oldIndex < oldLock.nameCount; oldIndex++)
+        for (int oldIndex = 0; oldIndex < oldLock->nameCount; oldIndex++)
         {
             for (int newIndex = 0; newIndex < nameCount; newIndex++)
             {
                 // If a lock already exists for a requested resource
-                if (!strcmp(oldLock.names[oldIndex], nameList[newIndex]))
+                if (!strcmp(oldLock->names[oldIndex], nameList[newIndex]))
                 {
                     // Can't allocate lock because one already exists for one of the requested resources
                     return 1;
@@ -71,10 +70,28 @@ int lock(int id, int nameCount, char* nameList[])
 
     for (int i = 0; i < nameCount; i++)
     {
-        newLock->names[i] = nameList[i];
+        newLock->names[i] = malloc(strlen(nameList[i]));
+        strcpy(newLock->names[i], nameList[i]);
     }
 
     locks[empty] = newLock;
+    return 0;
+}
+
+int is_unlocked(char* name)
+{
+    for (int i = 0; i < MAX_LOCKS; i++)
+    {
+        if (locks[i] == NULL) continue;
+
+        struct lock* current = locks[i];
+        for (int j = 0; j < current->nameCount; j++)
+        {
+            if (!strcmp(name, current->names[j]))
+                return 1;
+        }
+    }
+
     return 0;
 }
 
@@ -82,6 +99,11 @@ int unlock(int id, int nameCount, char* nameList[])
 {
     int index = _lock_exists(id, nameCount, nameList);
     if (index == -1) return 1;
+
+    for (int i = 0; i < locks[index]->nameCount; i++)
+    {
+        free(locks[index]->names[i]);
+    }
 
     free(locks[index]);
     locks[index] = NULL;

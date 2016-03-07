@@ -11,11 +11,13 @@
 #include <sys/prctl.h>
 #include <signal.h>
 #include "network.h"
+#include "store.h"
 
 struct connection connections[MAX_NODES];
 
 void _connection_listen(int, struct node *);
 void _attempt_connections(int, struct node *);
+void _parse_request(int, char[]);
 
 void network_init(int nodeCount, struct node* this)
 {
@@ -150,9 +152,77 @@ void _connection_listen(int nodeCount, struct node *this)
                     continue;
                 }
 
-                printf("network * Node %d sent: %s\n", node->id, buffer);
+                char copy[size];
+                strncpy(copy, buffer, (size_t)size - 1);
+                copy[size - 1] = '\0';
+
+                printf("network * N%d -> \"%s\"\n", node->id, copy);
+                _parse_request(node->id, copy);
+
+                if (strlen(copy) == 0)
+                {
+                    continue;
+                }
+
+                send(socket, copy, strlen(copy), 0);
             }
         }
     }
 #pragma clang diagnostic pop
+}
+
+void _parse_request(int nodeId, char* message)
+{
+    char command = message[0];
+    int response;
+    switch (command)
+    {
+        case 'L':
+            message++; //Remove 'L' from message
+            char* name = strtok(message, "\n");
+
+            if (name == NULL){
+                strcpy(message, "!1\n");
+                break;
+            }
+
+            sprintf(message - 1, "!%d\n", is_unlocked(name));
+            break;
+        case 'W':
+            message++; // Remove 'W' from message
+
+            struct resource* list = malloc(sizeof(struct resource) * MAX_RESOURCES);
+            char* resourceName = strtok(message, "= ");
+            char* resourceValue = strtok(NULL, "= ");
+            int i;
+            for (i = 0; i < MAX_RESOURCES; i++)
+            {
+
+                if (resourceName == NULL || resourceValue == NULL) {
+                    break;
+                }
+
+                strcpy(list[i].name, resourceName);
+                strcpy(list[i].value, resourceValue);
+                printf("network * Writing %s to %s\n", list[i].name, list[i].value);
+
+                resourceName = strtok(NULL, "= ");
+                resourceValue = strtok(NULL, "= ");
+            }
+
+            response = store_write(nodeId, i, list);
+            free(list);
+
+            if (response < 0) response = 1;
+            sprintf(message - 1, "!%d\n", response);
+            break;
+        case '!':
+            printf("network * Reply to previous request\n");
+            strcpy(message, "");
+            break;
+        default:
+            printf("network * Invalid command '%c'\n", command);
+            strcpy(message, "");
+            break;
+    }
 }
