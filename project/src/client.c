@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "client.h"
 
 int getCommandType(int numOfTokens, char tokenList[MAX_NUM_OF_TOKENS][MAX_ARG_LENGTH])
@@ -51,33 +52,62 @@ void run_client()
 
         commandType = getCommandType(numOfTokens, tokenList);
         resourceCount = 0;
+        int lockFailed = 0;
 
         switch(commandType)
         {
             case WRITE_COMMAND:
                 for(int i = 1; i < numOfTokens; i += 2)
                 {
+                    if (lock(tokenList[i])) {
+                        printf("Couldn't lock %s\n", tokenList[i]);
+                        lockFailed = 1;
+                        break;
+                    }
+
+                    printf("// %s LOCKED\n", tokenList[i]);
                     strcpy(entryList[resourceCount].name,  tokenList[i]);
                     strcpy(entryList[resourceCount].value, tokenList[i+1]);
                     resourceCount++;
                 }
 
-                store_write(resourceCount, entryList);
+                if (!lockFailed)
+                    store_write(resourceCount, entryList);
+
+                for (int i = resourceCount - 1; i >= 0; i--)
+                {
+                    unlock(entryList[i].name);
+                    printf("// %s UNLOCKED\n", entryList[i].name);
+                }
 
                 break;
 
             case READ_COMMAND:
                 for (int i = 1; i < numOfTokens; i++)
                 {
+                    if (lock(tokenList[i])) {
+                        printf("Couldn't lock %s\n", tokenList[i]);
+                        lockFailed = 1;
+                        break;
+                    }
+
+                    printf("// %s LOCKED\n", tokenList[i]);
                     namePtr[resourceCount] = tokenList[i];
                     resourceCount++;
                 }
 
-                store_read(resourceCount, namePtr, entryList);
+                if (!lockFailed) {
+                    store_read(resourceCount, namePtr, entryList);
 
-                for(int i = 0; i < resourceCount; i++)
+                    for (int i = 0; i < resourceCount; i++) {
+                        printf("\t%s:%s\n", entryList[i].name, entryList[i].value);
+                    }
+                }
+
+                for (int i = resourceCount - 1; i >= 0; i--)
                 {
-                    printf(" %s:%s\n", entryList[i].name, entryList[i].value);
+                    unlock(namePtr[i]);
+                    printf("// %s UNLOCKED\n", namePtr[i]);
                 }
 
                 break;

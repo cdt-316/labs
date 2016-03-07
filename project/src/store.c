@@ -8,11 +8,7 @@
 #include <stdio.h>
 #include "store.h"
 
-struct lock {
-    char* name;
-};
-
-struct lock* locks[MAX_LOCKS];
+char* locks[MAX_LOCKS];
 struct resource* resources[MAX_RESOURCES];
 
 void store_init() {
@@ -23,6 +19,18 @@ void store_init() {
     for (int i = 0; i < MAX_RESOURCES; i++) {
         resources[i] = NULL;
     }
+}
+
+int is_unlocked(char* name)
+{
+    for (int i = 0; i < MAX_LOCKS; i++)
+    {
+        if (locks[i] == NULL) continue;
+        if (!strcmp(name, locks[i]))
+            return 1;
+    }
+
+    return 0;
 }
 
 int lock(char* name)
@@ -36,8 +44,7 @@ int lock(char* name)
             continue;
         }
 
-        struct lock* oldLock = locks[i];
-        if (!strcmp(oldLock->name, name))
+        if (!strcmp(locks[i], name))
         {
             // Can't allocate lock because one already exists for the requested resource
             return 1;
@@ -49,23 +56,7 @@ int lock(char* name)
         return 2;
     }
 
-    struct lock* newLock = malloc(sizeof(struct lock));
-    strcpy(newLock->name, name);
-    locks[empty] = newLock;
-    return 0;
-}
-
-int is_unlocked(char* name)
-{
-    for (int i = 0; i < MAX_LOCKS; i++)
-    {
-        if (locks[i] == NULL) continue;
-
-        struct lock* current = locks[i];
-        if (!strcmp(name, current->name))
-            return 1;
-    }
-
+    locks[empty] = strdup(name);
     return 0;
 }
 
@@ -75,14 +66,12 @@ int unlock(char* name)
     for (index = 0; index < MAX_LOCKS; index++)
     {
         if (locks[index] == NULL) continue;
-        struct lock* current = locks[index];
-        if (!strcmp(current->name, name))
+        if (!strcmp(locks[index], name))
             break;
     }
 
     if (index == -1) return 1;
 
-    free(locks[index]->name);
     free(locks[index]);
     locks[index] = NULL;
     return 0;
