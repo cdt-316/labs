@@ -55,8 +55,6 @@ void run_client()
         switch(commandType)
         {
             case WRITE_COMMAND:
-                printf("WRITE command!\n");
-
                 for(int i = 1; i < numOfTokens; i += 2)
                 {
                     strcpy(entryList[resourceCount].name,  tokenList[i]);
@@ -92,8 +90,7 @@ void run_client()
                 break;
         }
 
-        printf("\n");
-        printf("\n");
+        printf("DONE\n");
     }
 #pragma clang diagnostic pop
 }
