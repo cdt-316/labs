@@ -118,7 +118,7 @@ void * _connection_listen(void * arg)
         }
 
         struct timeval timeout;
-        timeout.tv_sec = 10;
+        timeout.tv_sec = 1;
         timeout.tv_usec = 0;
 
         int activity = select(maxDescriptor + 1, &fds, NULL, NULL, &timeout);
@@ -170,7 +170,7 @@ void * _connection_listen(void * arg)
                 strncpy(copy, buffer, (size_t)size - 1);
                 copy[size - 1] = '\0';
 
-                printf("network * N%d -> \"%s\"\n", node->id, copy);
+                //printf("network * N%d -> \"%s\"\n", node->id, copy);
                 _parse_request(copy, node->id);
 
                 if (strlen(copy) == 0)
@@ -219,7 +219,6 @@ void _parse_request(char* message, int id)
 
                 strcpy(list[i].name, resourceName);
                 strcpy(list[i].value, resourceValue);
-                printf("network * Writing %s=%s\n", list[i].name, list[i].value);
 
                 resourceName = strtok(NULL, "= ");
                 resourceValue = strtok(NULL, "= ");
