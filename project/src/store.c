@@ -91,7 +91,7 @@ int unlock(char* name)
     return 0;
 }
 
-int store_write(int resourceCount, struct resource entryList[])
+int store_write(int resourceCount, struct resource* entryList)
 {
     int needsPosition = 0; // The next resource in the list that needs a location in `resources` to have a pointer
     int resourceIndices[resourceCount]; // A list of "spots" in `resources` for a pointer to a new resource
@@ -146,7 +146,7 @@ int store_write(int resourceCount, struct resource entryList[])
     return 0;
 }
 
-int store_read(int nameCount, char* nameList[], struct resource entryList[])
+int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
     //delete this
     for(int i = 0; i < nameCount; i++)

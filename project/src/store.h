@@ -54,7 +54,7 @@ int unlock(char* name);
  * 1: lock didn't exist for id and resources
  * 2: ran out of space to put resources
  */
-int store_write(int resourceCount, struct resource entryList[]);
+int store_write(int resourceCount, struct resource* entryList);
 
 /**
  * Will read the resources listed in "nameList". If a lock does not exist for all
@@ -67,6 +67,6 @@ int store_write(int resourceCount, struct resource entryList[]);
  * 0: success
  * 1: generic error
  */
-int store_read(int nameCount, char* nameList[], struct resource entryList[]);
+int store_read(int nameCount, char** nameList, struct resource* entryList);
 
 #endif // STORE_H_INCLUDED

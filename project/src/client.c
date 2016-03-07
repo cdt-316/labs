@@ -33,6 +33,8 @@ void run_client()
 
     printf("Enter commands: \n");
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
     while(1)
     {
         fgets(msg, MAX_MSG_LENGTH, stdin);
@@ -103,5 +105,6 @@ void run_client()
         printf("\n");
         printf("\n");
     }
+#pragma clang diagnostic pop
 }
 
