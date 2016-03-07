@@ -90,6 +90,11 @@ void run_client()
 
                 store_read(resourceCount, namePtr, entryList);
 
+                for(int i = 0; i < resourceCount; i++)
+                {
+                    printf("Name: %s = %s",entryList[i].name, entryList[i].value);
+                }
+
                 break;
 
             case UNKNOWN_COMMAND:

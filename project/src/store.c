@@ -148,16 +148,6 @@ int store_write(int resourceCount, struct resource* entryList)
 
 int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
-    //delete this
-    for(int i = 0; i < nameCount; i++)
-    {
-        printf("%s", nameList[i]);
-        printf("\n");
-    }
-
-    //delete this
-    return 1;
-
     for (int i = 0; i < nameCount; i++)
     {
         // Some resources won't exist, and they should be returned with the proper name and an empty string as the value
