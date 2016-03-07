@@ -17,6 +17,7 @@ int responses[MAX_NODES];
 struct connection connections[MAX_NODES];
 struct node* this;
 sem_t remoteLockSemaphore;
+int timedOut;
 
 void * _connection_listen(void *);
 void _attempt_connections(int, struct node *);
@@ -115,10 +116,24 @@ void * _connection_listen(void * arg)
                 maxDescriptor = client;
         }
 
-        int activity = select(maxDescriptor + 1, &fds, NULL, NULL, NULL);
+        struct timeval timeout;
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
+
+        int activity = select(maxDescriptor + 1, &fds, NULL, NULL, &timeout);
 
         if (activity < 0 && errno != EINTR)
             perror("Failed to select()\n");
+
+        if (activity == 0)
+        {
+            timedOut++;
+            if (timedOut == 2)
+            {
+                sem_post(&remoteLockSemaphore);
+            }
+            continue;
+        }
 
         if (FD_ISSET(listenSocket, &fds))
         {
@@ -254,8 +269,9 @@ int isRemotelyLocked(char* resource)
         send(connections[i].socket, message, sizeof(message), 0);
     }
 
+    timedOut = 0;
     int done = 2;
-    while (done == 2)
+    while (done == 2 && !timedOut)
     {
         sem_wait(&remoteLockSemaphore);
         done = 0;
@@ -267,5 +283,14 @@ int isRemotelyLocked(char* resource)
         }
     }
 
+    done = 0;
+    if (timedOut)
+    {
+        for (int i = 0; i < node_count(); i++)
+        {
+            if (responses[i] > done && responses[i] != 2)
+                done = responses[i];
+        }
+    }
     return done;
 }
