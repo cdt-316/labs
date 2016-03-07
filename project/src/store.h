@@ -1,9 +1,11 @@
 #ifndef STORE_H_INCLUDED
 #define STORE_H_INCLUDED
 
+#include <stdlib.h>
+#include <stdio.h>
 #define MAX_NAME_LENGTH 50
 #define MAX_VALUE_LENGTH 50
-
+#define MAX_NUM_OF_ENTRIES 5
 /**
  * A key-value resource
  */

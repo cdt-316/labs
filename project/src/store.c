@@ -147,6 +147,16 @@ int store_write(int id, int resourceCount, struct resource entryList[])
 
 int store_read(int id, int nameCount, char* nameList[], struct resource entryList[])
 {
+    //delete this
+    for(int i = 0; i < nameCount; i++)
+    {
+        printf("%s", nameList[i]);
+        printf("\n");
+    }
+
+    //delete this
+    return 1;
+
     if (_lock_exists(id, nameCount, nameList) == -1) return 1;
 
     for (int i = 0; i < nameCount; i++)

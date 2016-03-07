@@ -2,6 +2,7 @@
 #include "store.h"
 #include "config.h"
 #include "store-test.c"
+#include "client.h"
 
 struct lock {
     int id;
@@ -11,6 +12,9 @@ struct lock {
 
 int main(int argc, char* argv[])
 {
+    //remove this !
+    run_client();
+
     if (argc != 2 && argc != 4)
     {
         printf("Usage: distributed-db config-file [address port]\n");
