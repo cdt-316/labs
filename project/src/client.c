@@ -39,21 +39,20 @@ void run_client()
     {
         fgets(msg, MAX_MSG_LENGTH, stdin);
 
-        nextToken = strtok(msg, " ");
+        nextToken = strtok(msg, " \n");
         numOfTokens = 0;
 
         while( (nextToken != NULL) && (numOfTokens < MAX_NUM_OF_TOKENS) )
         {
             strcpy(tokenList[numOfTokens],nextToken);
-            nextToken = strtok(NULL, " ");
+            nextToken = strtok(NULL, " \n");
             numOfTokens++;
         }
 
         //remove later
         for(int i = 0; i < numOfTokens; i++)
         {
-            printf("Arg[%d] is: %s", i, tokenList[i]);
-            printf("\n");
+            printf("Arg[%d] is: %s\n", i, tokenList[i]);
         }
 
         //remove later
@@ -92,7 +91,7 @@ void run_client()
 
                 for(int i = 0; i < resourceCount; i++)
                 {
-                    printf("Name: %s = %s",entryList[i].name, entryList[i].value);
+                    printf(" %s:%s\n", entryList[i].name, entryList[i].value);
                 }
 
                 break;
