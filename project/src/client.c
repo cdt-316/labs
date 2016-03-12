@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "client.h"
 
 int getCommandType(int numOfTokens, char tokenList[MAX_NUM_OF_TOKENS][MAX_ARG_LENGTH])
@@ -31,6 +32,7 @@ void run_client()
     struct resource entryList[MAX_NUM_OF_ENTRIES];
     char* namePtr[MAX_NUM_OF_ENTRIES];
 
+    srand((unsigned int) time(NULL));
     printf("Enter commands: \n");
 
 #pragma clang diagnostic push
@@ -53,46 +55,59 @@ void run_client()
 
         commandType = getCommandType(numOfTokens, tokenList);
         resourceCount = 0;
+        int lockResult = 0;
 
         switch(commandType)
         {
             case WRITE_COMMAND:
             {
-                printf("WRITE command!\n");
-
                 for(int i = 1; i < numOfTokens; i += 2)
                 {
+                    lockResult = lock(tokenList[i]);
+                    while (lockResult) {
+                        usleep((__useconds_t) (rand() % 25 + 5));
+                        lockResult = lock(tokenList[i]);
+                    }
+
                     strcpy(entryList[resourceCount].name,  tokenList[i]);
                     strcpy(entryList[resourceCount].value, tokenList[i+1]);
                     resourceCount++;
                 }
 
-                store_write(resourceCount, entryList);
+                store_write(resourceCount, entryList, 0);
+
+                for (int i = resourceCount - 1; i >= 0; i--)
+                    unlock(entryList[i].name);
 
                 break;
             }
             case READ_COMMAND:
-            {
-                printf("READ command!\n");
-
                 for (int i = 1; i < numOfTokens; i++)
                 {
+                    lockResult = lock(tokenList[i]);
+                    while (lockResult) {
+                        usleep((__useconds_t) (rand() % 25 + 5));
+                        lockResult = lock(tokenList[i]);
+                    }
+
                     namePtr[resourceCount] = tokenList[i];
                     resourceCount++;
                 }
 
                 store_read(resourceCount, namePtr, entryList);
 
-                for(int i = 0; i < resourceCount; i++)
-                {
-                    printf(" %s:%s\n", entryList[i].name, entryList[i].value);
+                for (int i = 0; i < resourceCount; i++) {
+                    printf("\t%s:%s\n", entryList[i].name, entryList[i].value);
                 }
+
+                for (int i = resourceCount - 1; i >= 0; i--)
+                    unlock(namePtr[i]);
 
                 break;
             }
             case UNKNOWN_COMMAND:
             default:
-                printf("Unknown command!");
+                printf("Unknown command. Use \"read\" or \"write\"\n");
                 break;
         }
 

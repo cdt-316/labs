@@ -20,15 +20,14 @@ int config_init(char* filename)
         return -1;
     }
 
-    int currentLine = 0, currentPort;
+    int currentLine = 0;
     char currentAddress[IP_ADDRESS_SIZE];
 
-    while (fscanf(fp, "%s %d", currentAddress, &currentPort) != EOF)
+    while (fscanf(fp, "%s", currentAddress) != EOF)
     {
         struct node* current = malloc(sizeof(struct node));
         current->id = currentLine;
         strcpy(current->address, currentAddress);
-        current->port = currentPort;
         nodes[currentLine] = current;
         currentLine++;
     }
@@ -48,12 +47,12 @@ struct node* node_for_id(int id)
     return nodes[id];
 }
 
-int node_id(char *address, int port)
+int node_id(char *address)
 {
     for (int i = 0; i < nodeCount; i++)
     {
         struct node* current = nodes[i];
-        if (!strcmp(address, current->address) && port == current->port)
+        if (!strcmp(address, current->address))
             return current->id;
     }
 

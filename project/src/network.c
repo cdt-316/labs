@@ -8,19 +8,25 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/prctl.h>
-#include <signal.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include "network.h"
-#include "store.h"
 
+#define LISTEN_PORT 9001
+
+int responses[MAX_NODES];
 struct connection connections[MAX_NODES];
+struct node* this;
+sem_t remoteLockSemaphore;
+int timedOut;
 
-void _connection_listen(int, struct node *);
+void * _connection_listen(void *);
 void _attempt_connections(int, struct node *);
-void _parse_request(char[]);
+void _parse_request(char[], int);
 
-void network_init(int nodeCount, struct node* this)
+void network_init(int nodeCount, struct node* thisNode)
 {
+    this = thisNode;
     for (int i = 0; i < nodeCount; i++)
     {
         connections[i].node = node_for_id(i);
@@ -28,16 +34,10 @@ void network_init(int nodeCount, struct node* this)
     }
 
     _attempt_connections(nodeCount, this);
-
-    pid_t childPid = fork();
-    if (childPid < 0)
-        perror("Forking failed\n");
-
-    if (childPid == 0)
-    {
-        prctl(PR_SET_PDEATHSIG, SIGHUP); // Ask for forked thread to be killed when parent dies
-        _connection_listen(nodeCount, this);
-    }
+    sem_init(&remoteLockSemaphore, 0, 0);
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, _connection_listen, &nodeCount))
+        printf("Failed to create listen thread\n");
 
     usleep(100); // Cheesy delay so that "Enter commands:" appears after "Listening" message
 }
@@ -54,7 +54,7 @@ void _attempt_connections(int nodeCount, struct node *this)
         int sockd = socket(AF_INET, SOCK_STREAM, 0);
         struct sockaddr_in dest;
         dest.sin_family = AF_INET;
-        dest.sin_port = htons((uint16_t) current->port);
+        dest.sin_port = htons(LISTEN_PORT);
         dest.sin_addr.s_addr = inet_addr(current->address);
         memset(&(dest.sin_zero), '\0', 8);
 
@@ -64,13 +64,15 @@ void _attempt_connections(int nodeCount, struct node *this)
             continue;
         }
 
-        printf("network * Connected to node %d: (%s:%d)\n", i, current->address, current->port);
+        printf("network * Connected to node: %d|%s\n", i, current->address);
         connections[i].socket = sockd;
     }
 }
 
-void _connection_listen(int nodeCount, struct node *this)
+//void _connection_listen(int nodeCount, struct node *this)
+void * _connection_listen(void * arg)
 {
+    int nodeCount = *(int *)(arg);
     char buffer[1024];
     int listenSocket;
     fd_set fds;
@@ -84,7 +86,7 @@ void _connection_listen(int nodeCount, struct node *this)
 
     struct sockaddr_in address;
     address.sin_family = AF_INET;
-    address.sin_port = htons((uint16_t)this->port);
+    address.sin_port = htons(LISTEN_PORT);
     address.sin_addr.s_addr = inet_addr(this->address);
     memset(&(address.sin_zero), '\0', 8);
 
@@ -115,10 +117,24 @@ void _connection_listen(int nodeCount, struct node *this)
                 maxDescriptor = client;
         }
 
-        int activity = select(maxDescriptor + 1, &fds, NULL, NULL, NULL);
+        struct timeval timeout;
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
+
+        int activity = select(maxDescriptor + 1, &fds, NULL, NULL, &timeout);
 
         if (activity < 0 && errno != EINTR)
             perror("Failed to select()\n");
+
+        if (activity == 0)
+        {
+            timedOut++;
+            if (timedOut == 2)
+            {
+                sem_post(&remoteLockSemaphore);
+            }
+            continue;
+        }
 
         if (FD_ISSET(listenSocket, &fds))
         {
@@ -128,10 +144,9 @@ void _connection_listen(int nodeCount, struct node *this)
                 perror("Accept failed\n");
 
             char* ipAddress = inet_ntoa(address.sin_addr);
-            int port = ntohs(address.sin_port);
 
-            int nodeId = node_id(ipAddress, port);
-            printf("network * Node %d connected: (%s:%d)\n", nodeId, ipAddress, port);
+            int nodeId = node_id(ipAddress);
+            printf("network * Node connected: %d|%s\n", nodeId, ipAddress);
             connections[nodeId].socket = newSocket;
         }
 
@@ -145,7 +160,7 @@ void _connection_listen(int nodeCount, struct node *this)
                 if (size == 0)
                 {
                     //Close
-                    printf("network * Node %d disconnected: (%s:%d)\n", node->id, node->address, node->port);
+                    printf("network * Node disconnected: %d|%s\n", node->id, node->address);
                     close(socket);
                     connections[i].socket = 0;
                     continue;
@@ -155,8 +170,8 @@ void _connection_listen(int nodeCount, struct node *this)
                 strncpy(copy, buffer, (size_t)size - 1);
                 copy[size - 1] = '\0';
 
-                printf("network * N%d -> \"%s\"\n", node->id, copy);
-                _parse_request(copy);
+                //printf("network * N%d -> \"%s\"\n", node->id, copy);
+                _parse_request(copy, node->id);
 
                 if (strlen(copy) == 0)
                 {
@@ -170,10 +185,11 @@ void _connection_listen(int nodeCount, struct node *this)
 #pragma clang diagnostic pop
 }
 
-void _parse_request(char* message)
+void _parse_request(char* message, int id)
 {
     char command = message[0];
     int response;
+    char responseNumber[2];
     switch (command)
     {
         case 'L':
@@ -203,20 +219,25 @@ void _parse_request(char* message)
 
                 strcpy(list[i].name, resourceName);
                 strcpy(list[i].value, resourceValue);
-                printf("network * Writing %s to %s\n", list[i].name, list[i].value);
 
                 resourceName = strtok(NULL, "= ");
                 resourceValue = strtok(NULL, "= ");
             }
 
-            response = store_write(i, list);
+            response = store_write(i, list, 1);
             free(list);
 
             if (response < 0) response = 1;
             sprintf(message - 1, "!%d\n", response);
             break;
         case '!':
-            printf("network * Reply to previous request\n");
+            responseNumber[0] = message[1];
+            responseNumber[1] = '\0';
+            int before = responses[id];
+            responses[id] = atoi(responseNumber);
+
+            if (before == 2)
+                sem_post(&remoteLockSemaphore);
             strcpy(message, "");
             break;
         default:
@@ -224,4 +245,122 @@ void _parse_request(char* message)
             strcpy(message, "");
             break;
     }
+}
+
+int isRemotelyLocked(char* resource)
+{
+    char message[strlen(resource) + 3];
+    sprintf(message, "L%s\n", resource);
+    for (int i = 0; i < node_count(); i++)
+    {
+        if (i == this->id)
+        {
+            responses[i] = 0;
+            continue;
+        }
+
+        // 0: ACK
+        // 1: NACK
+        // 2: No response
+
+        responses[i] = 2;
+        send(connections[i].socket, message, sizeof(message), 0);
+    }
+
+    timedOut = 0;
+    int done = 2;
+    while (done == 2 && !timedOut)
+    {
+        sem_wait(&remoteLockSemaphore);
+        done = 0;
+
+        for (int i = 0; i < node_count(); i++)
+        {
+            if (responses[i] > done)
+                done = responses[i];
+        }
+    }
+
+    done = 0;
+    if (timedOut)
+    {
+        for (int i = 0; i < node_count(); i++)
+        {
+            if (responses[i] > done && responses[i] != 2)
+                done = responses[i];
+        }
+    }
+    return done;
+}
+
+int remote_write(int resourceCount, struct resource* entryList)
+{
+    int messageSize = resourceCount * MAX_NAME_LENGTH;
+    messageSize += resourceCount * MAX_VALUE_LENGTH;
+    messageSize += resourceCount * 2; // for the '=' and ' '
+    messageSize += 3; //For W, \n and \0
+    char message[messageSize];
+    message[0] = 'W';
+
+    int offset = 1;
+    for (int i = 0; i < resourceCount; i++)
+    {
+        // Resource name
+        strcpy(message + offset, entryList[i].name);
+        offset += strlen(entryList[i].name); // -1 so that the '\0' doesn't remain
+
+        // '=' separator
+        message[offset++] = '=';
+
+        // Resource value
+        strcpy(message + offset, entryList[i].value);
+        offset += strlen(entryList[i].value);
+
+        // ' ' after each name-value tuple
+        message[offset++] = ' ';
+    }
+
+    message[offset++] = '\n';
+    message[offset] = '\0';
+
+    for (int i = 0; i < node_count(); i++)
+    {
+        if (i == this->id)
+        {
+            responses[i] = 0;
+            continue;
+        }
+
+        // 0: ACK
+        // 1: NACK
+        // 2: No response
+
+        responses[i] = 2;
+        send(connections[i].socket, message, sizeof(message), 0);
+    }
+
+    timedOut = 0;
+    int done = 2;
+    while (done == 2 && !timedOut)
+    {
+        sem_wait(&remoteLockSemaphore);
+        done = 0;
+
+        for (int i = 0; i < node_count(); i++)
+        {
+            if (responses[i] > done)
+                done = responses[i];
+        }
+    }
+
+    done = 0;
+    if (timedOut)
+    {
+        for (int i = 0; i < node_count(); i++)
+        {
+            if (responses[i] > done && responses[i] != 2)
+                done = responses[i];
+        }
+    }
+    return done;
 }

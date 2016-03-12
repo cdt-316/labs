@@ -9,7 +9,7 @@
 #define MAX_NAME_LENGTH 50
 #define MAX_VALUE_LENGTH 50
 #define MAX_NUM_OF_ENTRIES 5
-#define MAX_RESOURCES 128
+#define MAX_RESOURCES 32
 
 /**
  * A key-value resource
@@ -51,13 +51,14 @@ int unlock(char* name);
 
 /**
  * Writes the provided list of resources, if a lock exists for all the resources for the specified id.
+ * If thisOnly is true, the write won't be propogated to other nodes
  *
  * Returns:
  * 0: success
  * 1: lock didn't exist for id and resources
  * 2: ran out of space to put resources
  */
-int store_write(int resourceCount, struct resource* entryList);
+int store_write(int resourceCount, struct resource* entryList, int thisOnly);
 
 /**
  * Will read the resources listed in "nameList". If a lock does not exist for all
