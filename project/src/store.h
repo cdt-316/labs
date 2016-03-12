@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <unistd.h>
+
 #define MAX_NAME_LENGTH 50
 #define MAX_VALUE_LENGTH 50
 #define MAX_NUM_OF_ENTRIES 5

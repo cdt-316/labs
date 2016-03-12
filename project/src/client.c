@@ -35,6 +35,8 @@ void run_client()
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
+
+    //strcpy(msg, "write A 1");
     while(1)
     {
         fgets(msg, MAX_MSG_LENGTH, stdin);
@@ -55,6 +57,9 @@ void run_client()
         switch(commandType)
         {
             case WRITE_COMMAND:
+            {
+                printf("WRITE command!\n");
+
                 for(int i = 1; i < numOfTokens; i += 2)
                 {
                     strcpy(entryList[resourceCount].name,  tokenList[i]);
@@ -65,8 +70,9 @@ void run_client()
                 store_write(resourceCount, entryList);
 
                 break;
-
+            }
             case READ_COMMAND:
+            {
                 printf("READ command!\n");
 
                 for (int i = 1; i < numOfTokens; i++)
@@ -83,7 +89,7 @@ void run_client()
                 }
 
                 break;
-
+            }
             case UNKNOWN_COMMAND:
             default:
                 printf("Unknown command!");
