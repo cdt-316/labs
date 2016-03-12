@@ -119,6 +119,8 @@ int store_write(int resourceCount, struct resource* entryList, int thisOnly)
         }
     }
 
+    db_write(entryList, resourceCount);
+
     if (needsPosition < resourceCount)
     {
         return 2;

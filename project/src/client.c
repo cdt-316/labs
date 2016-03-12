@@ -104,7 +104,6 @@ void run_client()
                     unlock(namePtr[i]);
 
                 break;
-            }
             case UNKNOWN_COMMAND:
             default:
                 printf("Unknown command. Use \"read\" or \"write\"\n");

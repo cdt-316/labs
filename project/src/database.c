@@ -19,9 +19,7 @@ int entryExists(char* name)
     {
 		if( ( strstr(buffer, name) ) != NULL )
 		{
-			printf("A match found on line: %d\n", line_num);
             lineToDelete = line_num;
-            printf("line to delete: %d \n", lineToDelete);
             fclose(fp);
             return lineToDelete;
         }
@@ -54,11 +52,8 @@ void updateEntry(char* name)
 
     while (c != EOF)
     {
-        printf("Line: %d, Char: %d \n", tempLine, c );
-
         if (tempLine != lineToDelete)
         {
-            printf("Char copied: %d \n", c);
             //copy all lines in file copy.c
             putc(c, fp_copy);
         }
@@ -71,7 +66,6 @@ void updateEntry(char* name)
         c = getc(fp_original);
     }
 
-    printf("Line: %d \n", tempLine );
 
     //close both the files.
     fclose(fp_original);
@@ -91,12 +85,8 @@ int db_write(struct resource* entryList, int numOfEntries)
 
     for(int i = 0; i < numOfEntries; i++)
     {
-
-        printf("%d \n", i);
-
         if(entryExists(entryList[i].name) != -1)
         {
-            printf("Name %s already exists! \n", entryList[i].name);
             updateEntry(entryList[i].name);
             fp = fopen(DBFILE, "a");
             fprintf(fp, "%s %s\n", entryList[i].name, entryList[i].value);
@@ -104,7 +94,6 @@ int db_write(struct resource* entryList, int numOfEntries)
         else
         {
             fp = fopen(DBFILE, "a");
-            printf("Name %s did not exist! It will now be added. \n", entryList[i].name);
             fprintf(fp, "%s %s\n", entryList[i].name, entryList[i].value);
         }
     }
@@ -113,3 +102,7 @@ int db_write(struct resource* entryList, int numOfEntries)
 
 }
 
+struct resource* db_read(char** nameList)
+{
+
+}
