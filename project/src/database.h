@@ -13,9 +13,9 @@ int entryExists(char* name);
 
 void updateEntry(char* name);
 
-char* readName(int line);
+struct resource readEntry(int line);
 
-char* readValue(int line);
+
 
 
 #endif // DATABASE_H_INCLUDED

@@ -101,14 +101,39 @@ int db_write(struct resource* entryList, int numOfEntries)
     fclose(fp);
 
 }
-char* readName(int line)
-{
-    return " FACE";
-}
 
-char* readValue(int line)
+struct resource readEntry(int line)
 {
-    return " FACE";
+    FILE* fp = NULL;
+    int lineCount = 0;
+    struct resource entry =
+    {
+        "",
+        ""
+    };
+
+    char name[MAX_NAME_LENGTH];
+    char value[MAX_VALUE_LENGTH];
+
+    fp = fopen(DBFILE, "r");
+
+    while (lineCount != line)
+    {
+
+        if(fscanf(fp, " %s %s", name, value) == EOF)
+        {
+            return entry;
+        }
+
+        lineCount++;
+    }
+
+    fscanf(fp, " %s %s", name, value);
+
+    strcpy(entry.name, name);
+    strcpy(entry.value, value);
+
+    return entry;
 }
 
 
@@ -123,8 +148,7 @@ int db_read(char** nameList, int nameCount, struct resource* entryList)
 
         if( line != -1)
         {
-            strcpy(entryList[i].name, readName(line));
-            strcpy(entryList[i].value, readValue(line));
+            entryList[i] = readEntry(line);
         }
     }
 

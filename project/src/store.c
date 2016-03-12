@@ -166,5 +166,7 @@ int store_read(int nameCount, char** nameList, struct resource* entryList)
         }
     }
 
+    db_read(nameList, nameCount, entryList);
+
     return 0;
 }
