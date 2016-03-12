@@ -55,8 +55,7 @@ int unlock(char* name);
  *
  * Returns:
  * 0: success
- * 1: lock didn't exist for id and resources
- * 2: ran out of space to put resources
+ * 1: couldn't add lock
  */
 int store_write(int resourceCount, struct resource* entryList, int thisOnly);
 
