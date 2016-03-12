@@ -1,5 +1,5 @@
 #include "database.h"
-
+#include <string.h>
 int entryExists(char* name)
 {
     FILE* fp = NULL;
@@ -101,8 +101,32 @@ int db_write(struct resource* entryList, int numOfEntries)
     fclose(fp);
 
 }
+char* readName(int line)
+{
+    return " FACE";
+}
 
-struct resource* db_read(char** nameList)
+char* readValue(int line)
+{
+    return " FACE";
+}
+
+
+int db_read(char** nameList, int nameCount, struct resource* entryList)
 {
 
+    int line = -1;
+
+    for(int i = 0; i < nameCount; i++)
+    {
+        line = entryExists(nameList[i]);
+
+        if( line != -1)
+        {
+            strcpy(entryList[i].name, readName(line));
+            strcpy(entryList[i].value, readValue(line));
+        }
+    }
+
+    return 1;
 }

@@ -6,12 +6,16 @@
 /**Writes entries to local database, specified by the entryList. Returns 1 on success, or 0 on failure. */
 int db_write(struct resource* entryList, int numOfEntries);
 
-/**Reads entries from local database, specified by the names in the nameList. Returns a list of all the matched entries.*/
-struct resource* db_read(char** nameList);
+/**Reads entries from local database, specified by the names in the nameList. Returns 1 on success, else 0*/
+int db_read(char** nameList, int nameCount, struct resource* entryList);
 
 int entryExists(char* name);
 
 void updateEntry(char* name);
+
+char* readName(int line);
+
+char* readValue(int line);
 
 
 #endif // DATABASE_H_INCLUDED
