@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "store.h"
 #include "network.h"
+#include "database.h"
 
 char* locks[MAX_LOCKS];
 
@@ -81,10 +82,10 @@ int unlock(char* name)
 
 int store_write(int resourceCount, struct resource* entryList, int thisOnly)
 {
-    if (db_write(entryList, resourceCount) == 0)
+    if (db_write(entryList, resourceCount))
     {
         return 1;
-    };
+    }
 
     if (thisOnly)
         return 0;
@@ -94,10 +95,5 @@ int store_write(int resourceCount, struct resource* entryList, int thisOnly)
 
 int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
-    if (db_read(nameList, nameCount, entryList) == 0)
-    {
-        return 1;
-    }
-
-    return 0;
+    return db_read(nameList, nameCount, entryList);
 }
