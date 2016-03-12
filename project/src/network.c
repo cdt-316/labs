@@ -193,6 +193,7 @@ void _parse_request(char* message, int id)
     switch (command)
     {
         case 'L':
+            printf("network * Node requested lock: %d\n", id);
             message++; //Remove 'L' from message
             char* name = strtok(message, "\n");
 
@@ -204,6 +205,7 @@ void _parse_request(char* message, int id)
             sprintf(message - 1, "!%d\n", is_unlocked(name));
             break;
         case 'W':
+            printf("network * Node requested write: %d\n", id);
             message++; // Remove 'W' from message
 
             struct resource* list = malloc(sizeof(struct resource) * MAX_RESOURCES);
@@ -241,7 +243,7 @@ void _parse_request(char* message, int id)
             strcpy(message, "");
             break;
         default:
-            printf("network * Invalid command '%c'\n", command);
+            printf("network * Node made invalid request: %d|%c\n", id, command);
             strcpy(message, "");
             break;
     }
