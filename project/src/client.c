@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include "client.h"
+#include <ctype.h>
 
 int getCommandType(int numOfTokens, char tokenList[MAX_NUM_OF_TOKENS][MAX_ARG_LENGTH])
 {
@@ -112,8 +113,55 @@ void run_client()
 
                 break;
             case ADD_COMMAND:
+            {
+                int intVals[MAX_NUM_OF_ENTRIES];
+                char* valPtr[MAX_NUM_OF_ENTRIES];
+                int foundDigit = 0;
 
-                store_add(tokenlist[1], tokenList[2]);
+                for (int i = 1; i < numOfTokens; i += 2)
+                {
+                    namePtr[resourceCount] = tokenList[i];
+                    lockResult = lock(tokenList[i]);
+                    while (lockResult) {
+                        usleep((__useconds_t) (rand() % 25 + 5));
+                        lockResult = lock(tokenList[i]);
+                    }
+
+                    if (isdigit(tokenList[i+1][0]))
+                    {
+                        foundDigit = 1;
+                        intVals[resourceCount] = atoi(tokenList[i+1]);
+                    }
+                    else
+                    {
+                        valPtr[resourceCount] = tokenList[i+1];
+                        lockResult = lock(tokenList[i+1]);
+                        while (lockResult) {
+                            usleep((__useconds_t) (rand() % 25 + 5));
+                            lockResult = lock(tokenList[i+1]);
+                        }
+                    }
+
+                    resourceCount++;
+                }
+
+                if (foundDigit)
+                {
+                    store_add_const(resourceCount, namePtr, intVals, false);
+
+                }
+                else
+                {
+                    store_add_var(resourceCount, namePtr, valPtr, false);
+                    for (int i = resourceCount - 1; i >= 0; i--)
+                        unlock(valPtr[i]);
+                }
+
+                for (int i = resourceCount - 1; i >= 0; i--)
+                    unlock(namePtr[i]);
+            }
+
+
 
             break;
             case UNKNOWN_COMMAND:
