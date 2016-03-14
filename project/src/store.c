@@ -97,3 +97,37 @@ int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
     return db_read(nameList, nameCount, entryList);
 }
+
+int store_add(char* dest, char* source)
+{
+    int A = 0;
+    int B = 0;
+
+    struct resource* entry = NULL;
+
+    entry = (struct resource*) malloc(sizeof(struct resource*));
+
+    if(entry != NULL)
+    {
+         db_read(dest, 1, entry);
+         A = atoi(entry.value);
+    }
+
+    //B is a constant
+    if(strcmp(itoa(atoi(p)), p) == 0)
+    {
+        B = atoi(source);
+    }
+    else
+    {
+        db_read(dest, 1, entry);
+        B = A = atoi(entry.value);
+    }
+
+
+
+    db_write()
+
+
+
+}

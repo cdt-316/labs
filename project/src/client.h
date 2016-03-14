@@ -11,6 +11,7 @@
 #define UNKNOWN_COMMAND -1
 #define WRITE_COMMAND 0
 #define READ_COMMAND 1
+#define ADD_COMMAND 2
 
 /**Checks if the tokenList can be interpreted as a valid command.
  * Returns (0) if Read command, (1) if Write command or (-1) if invalid command.*/

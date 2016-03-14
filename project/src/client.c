@@ -17,6 +17,13 @@ int getCommandType(int numOfTokens, char tokenList[MAX_NUM_OF_TOKENS][MAX_ARG_LE
         else
             return UNKNOWN_COMMAND;
     }
+    else if(strcmp(tokenList[0],"add") == 0)
+    {
+        if(numOfTokens == 3)
+            return ADD_COMMAND;
+        else
+            return UNKNOWN_COMMAND;
+    }
     else
         return UNKNOWN_COMMAND;
 }
@@ -104,6 +111,11 @@ void run_client()
                     unlock(namePtr[i]);
 
                 break;
+            case ADD_COMMAND:
+
+                store_add(tokenlist[1], tokenList[2]);
+
+            break;
             case UNKNOWN_COMMAND:
             default:
                 printf("Unknown command. Use \"read\" or \"write\"\n");
