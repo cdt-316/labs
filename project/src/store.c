@@ -97,7 +97,7 @@ int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
         for(int i = 0; i < nameCount; i++)
         {
-            strcpy(entryList[i].name, "";
+            strcpy(entryList[i].name, "");
             strcpy(entryList[i].value, "" );
         }
 
