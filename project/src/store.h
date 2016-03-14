@@ -77,13 +77,13 @@ int store_read(int nameCount, char** nameList, struct resource* entryList);
  * 0: success
  * 1: generic error
  */
-int store_add_var(char* dest, char* src, int thisOnly);
+int store_add_var(int count, char** dest, char** src, int thisOnly);
 
 /**
  * Returns:
  * 0: success
  * 1: generic error
  */
-int store_add_const(char* dest, int val, int thisOnly);
+int store_add_const(int count, char** dest, int* val, int thisOnly);
 
 #endif // STORE_H_INCLUDED
