@@ -95,6 +95,12 @@ int store_write(int resourceCount, struct resource* entryList, int thisOnly)
 
 int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
+        for(int i = 0; i < nameCount; i++)
+        {
+            strcpy(entryList[i].name, "";
+            strcpy(entryList[i].value, "" );
+        }
+
     return db_read(nameList, nameCount, entryList);
 }
 
