@@ -97,3 +97,27 @@ int store_read(int nameCount, char** nameList, struct resource* entryList)
 {
     return db_read(nameList, nameCount, entryList);
 }
+
+int store_add_var(char* dest, char* src)
+{
+    struct resource entryList[2];
+    store_read(1, &dest, entryList);
+    store_read(1, &src, &entryList[1]);
+    int intDest = atoi(entryList[0].value);
+    intDest += atoi(entryList[1].value);
+    snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
+    store_write(1, entryList, false);
+
+    return 0;
+}
+
+int store_add_const(char* dest, int val)
+{
+    struct resource entryList[1];
+    store_read(1, &dest, entryList);
+    int intDest = atoi(entryList[0].value) + val;
+    snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
+    store_write(1, entryList, false);
+
+    return 0;
+}
