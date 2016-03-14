@@ -72,4 +72,8 @@ int store_write(int resourceCount, struct resource* entryList, int thisOnly);
  */
 int store_read(int nameCount, char** nameList, struct resource* entryList);
 
+int store_add_var(char* dest, char* src);
+
+int store_add_const(char* dest, int val);
+
 #endif // STORE_H_INCLUDED
