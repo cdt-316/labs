@@ -98,15 +98,19 @@ int store_read(int nameCount, char** nameList, struct resource* entryList)
     return db_read(nameList, nameCount, entryList);
 }
 
-int store_add_var(char* dest, char* src, int thisOnly)
+int store_add_var(int count, char** dest, char** src, int thisOnly)
 {
     struct resource entryList[2];
-    store_read(1, &dest, entryList);
-    store_read(1, &src, &entryList[1]);
-    int intDest = atoi(entryList[0].value);
-    intDest += atoi(entryList[1].value);
-    snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
-    store_write(1, entryList, false);
+
+    for (int i = 0; i < count; i++)
+    {
+        store_read(1, &dest[i], entryList);
+        store_read(1, &src[i], &entryList[1]);
+        int intDest = atoi(entryList[0].value);
+        intDest += atoi(entryList[1].value);
+        snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
+        store_write(1, entryList, false);
+    }
 
     if (!thisOnly) {
         remote_write(1, entryList);
@@ -115,13 +119,17 @@ int store_add_var(char* dest, char* src, int thisOnly)
     return 0;
 }
 
-int store_add_const(char* dest, int val, int thisOnly)
+int store_add_const(int count, char** dest, int* val, int thisOnly)
 {
     struct resource entryList[1];
-    store_read(1, &dest, entryList);
-    int intDest = atoi(entryList[0].value) + val;
-    snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
-    store_write(1, entryList, false);
+
+    for (int i = 0; i < count; i++)
+    {
+        store_read(1, &dest[i], entryList);
+        int intDest = atoi(entryList[0].value) + val[i];
+        snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
+        store_write(1, entryList, false);
+    }
 
     if (!thisOnly) {
         remote_write(1, entryList);
