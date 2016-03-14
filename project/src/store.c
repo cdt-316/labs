@@ -73,7 +73,7 @@ int unlock(char* name)
             break;
     }
 
-    if (index == -1) return 1;
+    if (index == -1) return 0;
 
     free(locks[index]);
     locks[index] = NULL;

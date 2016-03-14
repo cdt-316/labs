@@ -111,13 +111,17 @@ void run_client()
                 break;
             case ADD_COMMAND:
             {
+                char* intNames[MAX_NUM_OF_ENTRIES];
                 int intVals[MAX_NUM_OF_ENTRIES];
+                char* valNames[MAX_NUM_OF_ENTRIES];
                 char* valPtr[MAX_NUM_OF_ENTRIES];
                 int foundDigit = 0;
 
+                int currentInt = 0;
+                int currentVal = 0;
+
                 for (int i = 1; i < numOfTokens; i += 2)
                 {
-                    namePtr[resourceCount] = tokenList[i];
                     lockResult = lock(tokenList[i]);
                     while (lockResult) {
                         usleep((__useconds_t) (rand() % 25 + 5));
@@ -128,6 +132,8 @@ void run_client()
                     {
                         foundDigit = 1;
                         intVals[resourceCount] = atoi(tokenList[i+1]);
+                        intNames[resourceCount] = tokenList[i];
+                        currentInt++;
                     }
                     else
                     {
@@ -137,25 +143,20 @@ void run_client()
                             usleep((__useconds_t) (rand() % 25 + 5));
                             lockResult = lock(tokenList[i+1]);
                         }
+                        valNames[resourceCount] = tokenList[i];
+                        currentVal++;
                     }
-
-                    resourceCount++;
                 }
 
-                if (foundDigit)
-                {
-                    store_add_const(resourceCount, namePtr, intVals, false);
-
-                }
-                else
-                {
-                    store_add_var(resourceCount, namePtr, valPtr, false);
-                    for (int i = resourceCount - 1; i >= 0; i--)
-                        unlock(valPtr[i]);
+                store_add_const(currentInt, intNames, intVals, false);
+                store_add_var(currentVal, valNames, valPtr, false);
+                for (int i = currentVal - 1; i >= 0; i--) {
+                    unlock(valPtr[i]);
+                    unlock(valNames[i]);
                 }
 
-                for (int i = resourceCount - 1; i >= 0; i--)
-                    unlock(namePtr[i]);
+                for (int i = currentInt - 1; i >= 0; i--)
+                    unlock(intNames[i]);
 
                 break;
             }
