@@ -8,7 +8,7 @@
 
 #define MAX_NAME_LENGTH 50
 #define MAX_VALUE_LENGTH 50
-#define MAX_NUM_OF_ENTRIES 5
+#define MAX_NUM_OF_ENTRIES 50
 #define MAX_RESOURCES 32
 
 /**
