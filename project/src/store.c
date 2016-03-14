@@ -98,7 +98,7 @@ int store_read(int nameCount, char** nameList, struct resource* entryList)
     return db_read(nameList, nameCount, entryList);
 }
 
-int store_add_var(char* dest, char* src)
+int store_add_var(char* dest, char* src, int thisOnly)
 {
     struct resource entryList[2];
     store_read(1, &dest, entryList);
@@ -108,16 +108,24 @@ int store_add_var(char* dest, char* src)
     snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
     store_write(1, entryList, false);
 
+    if (!thisOnly) {
+        remote_write(1, entryList);
+    }
+
     return 0;
 }
 
-int store_add_const(char* dest, int val)
+int store_add_const(char* dest, int val, int thisOnly)
 {
     struct resource entryList[1];
     store_read(1, &dest, entryList);
     int intDest = atoi(entryList[0].value) + val;
     snprintf(entryList[0].value, MAX_VALUE_LENGTH, "%d", intDest);
     store_write(1, entryList, false);
+
+    if (!thisOnly) {
+        remote_write(1, entryList);
+    }
 
     return 0;
 }
