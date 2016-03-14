@@ -72,10 +72,20 @@ int store_write(int resourceCount, struct resource* entryList, int thisOnly);
  */
 int store_read(int nameCount, char** nameList, struct resource* entryList);
 
-int store_add(char* dest, char* source);
 
-int store_add_var(char* dest, char* src);
+/**
+ * Returns:
+ * 0: success
+ * 1: generic error
+ */
+int store_add_var(char* dest, char* src, int thisOnly);
 
-int store_add_const(char* dest, int val);
+
+/**
+ * Returns:
+ * 0: success
+ * 1: generic error
+ */
+int store_add_const(char* dest, int val, int thisOnly);
 
 #endif // STORE_H_INCLUDED
