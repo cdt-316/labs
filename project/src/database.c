@@ -90,16 +90,17 @@ int db_write(struct resource* entryList, int numOfEntries)
             updateEntry(entryList[i].name);
             fp = fopen(DBFILE, "a");
             fprintf(fp, "%s %s\n", entryList[i].name, entryList[i].value);
+            fclose(fp);
         }
         else
         {
             fp = fopen(DBFILE, "a");
             fprintf(fp, "%s %s\n", entryList[i].name, entryList[i].value);
+            fclose(fp);
         }
     }
 
-    fclose(fp);
-
+    return 0;
 }
 
 struct resource readEntry(int line)

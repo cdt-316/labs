@@ -6,7 +6,7 @@
 #include <string.h>
 
 #define MAX_MSG_LENGTH 50
-#define MAX_NUM_OF_TOKENS 11
+#define MAX_NUM_OF_TOKENS 50
 #define MAX_ARG_LENGTH 10
 #define UNKNOWN_COMMAND -1
 #define WRITE_COMMAND 0
