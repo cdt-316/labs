@@ -159,11 +159,9 @@ void run_client()
 
                 for (int i = resourceCount - 1; i >= 0; i--)
                     unlock(namePtr[i]);
+
+                break;
             }
-
-
-
-            break;
             case UNKNOWN_COMMAND:
             default:
                 printf("Unknown command. Use \"read\" or \"write\"\n");
