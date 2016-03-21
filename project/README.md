@@ -41,11 +41,10 @@ machine.
 
 ### Config file
 
-In the following example's format:
+It’s just a list of IP addresses. Implicitly, each line has an id. This id is
+the line number, starting from 0.
 ```
-193.11.112.192 9001
-192.168.123.333 9002
-193.11.112.177 9003
+193.11.112.192
+192.168.123.333
+193.11.112.177
 ```
-Where the first column is "address" and second column is "port". Implicitly, each line has an id. This id is the current
-line number, starting from 0.
